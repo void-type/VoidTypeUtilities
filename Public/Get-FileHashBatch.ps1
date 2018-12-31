@@ -44,6 +44,7 @@ function Get-FileHashBatch {
   }
 
   if (-not [string]::IsNullOrEmpty($ResultsFile)) {
+    Write-Host "Writing file to $ResultsFile."
     $results | Export-Csv -Path $ResultsFile
   }
 }
