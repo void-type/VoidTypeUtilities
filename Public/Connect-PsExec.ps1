@@ -9,13 +9,20 @@ function Connect-PsExec {
       THIS SCRIPT RUN AS AN ELEVATED USER ON THE REMOTE MACHINE!
 
       .EXAMPLE
-      Connect-PsExec -ComputerName Server01 -Command powershell
+      Connect-PsExec -ComputerName Server01
+
+      Opens a powershell prompt for Server01.
+
+      .EXAMPLE
+      Connect-PsExec -ComputerName Server01 -Command cmd -Credential $cred
+
+      Opens a CMD prompt for Server01 with the supplied credentials.
       #>
   [CmdletBinding()]param(
     [Parameter(Mandatory = $true, Position = 1)]
     [string]$ComputerName,
-    [Parameter(Mandatory = $true, Position = 2)]
-    [string]$Command,
+    [Parameter(Position = 2)]
+    [string]$Command = "powershell",
     [PSCredential]$Credential = (Get-Credential)
   )
 
