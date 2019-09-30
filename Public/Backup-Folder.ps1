@@ -18,20 +18,28 @@ function Backup-Folder {
 
     Reverse the backup source and destination.
     #>
-  [CmdletBinding()]
+  [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = 'Medium'
+  )]
   param(
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Test-Path -Path $_ })]
     [string]$Source,
     [Parameter(Mandatory = $true)]
+    [ValidateScript( { Test-Path -Path $_ })]
     [string]$Destination,
     [switch]$Restore
   )
 
   # Run jobs
   if ($Restore -eq $false) {
-    ROBOCOPY "$Source" "$Destination" /MIR /NFL /NDL /NP /MT:32 | Out-Host
-  }
-  else {
-    ROBOCOPY "$Destination" "$Source" /MIR /NFL /NDL /NP /MT:32 | Out-Host
+    if ($PSCmdlet.ShouldProcess("Backing up from $source to $destination")) {
+      ROBOCOPY "$Source" "$Destination" /MIR /NFL /NDL /NP /MT:32 | Out-Host
+    }
+  } else {
+    if ($PSCmdlet.ShouldProcess("Restoring backup from $destination to $source")) {
+      ROBOCOPY "$Destination" "$Source" /MIR /NFL /NDL /NP /MT:32 | Out-Host
+    }
   }
 }
