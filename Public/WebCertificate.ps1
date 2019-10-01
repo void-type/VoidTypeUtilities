@@ -32,7 +32,7 @@ function Get-WebCertificateExpiration {
       $certName = $certificate.GetName()
       $certIssuer = $certificate.GetIssuerName()
 
-      Write-Output [PSCustomObject]@ {
+      Write-Output -InputObject [PSCustomObject]@ {
         Url            = $Url;
         Name           = $certName;
         Issuer         = $certIssuer;
@@ -84,7 +84,7 @@ function Get-WebCertificate {
         $SSLStream.Dispose()
       }
 
-      Write-Output $Certificate
+      Write-Output -InputObject $Certificate
     }
   }
 
