@@ -113,7 +113,7 @@ function Start-ServerGetPendingUpdatesJob {
           Label      = "ComputerName";
           Expression = { $env:COMPUTERNAME }
         }, @{
-          Label      = "Pending Update Name";
+          Label      = "PendingUpdateName";
           Expression = { $_.Title }
         }
     }
