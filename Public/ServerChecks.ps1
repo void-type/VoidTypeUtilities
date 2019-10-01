@@ -30,7 +30,7 @@ function Get-ServerLastBootTime {
 
       $properties = @{
         "ComputerName" = $computer;
-        "LastStartup"  = lastBootTime;
+        "LastStartup"  = $lastBootTime;
       }
 
       $output = New-Object -TypeName PSObject -Property $properties
