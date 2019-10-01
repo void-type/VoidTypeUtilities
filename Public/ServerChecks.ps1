@@ -18,6 +18,14 @@ function Get-ServerLastBootTime {
     [string[]]$ComputerName
   )
 
+  function GetLastBootTime ($osCimInstance) {
+    if ($null -eq $osCimInstance) {
+      return "Offline"
+    } else {
+      return $osCimInstance.LastBootUptime.ToString("yyyy-MM-dd HH:mm:ss")
+    }
+  }
+
   process {
     foreach ($computer in $ComputerName) {
       $os = Get-CimInstance -ClassName Win32_OperatingSystem -ComputerName $computer
@@ -30,14 +38,6 @@ function Get-ServerLastBootTime {
       $output = New-Object -TypeName PSObject -Property $properties
 
       Write-Output -InputObject $output
-
-      function GetLastBootTime ($osCimInstance) {
-        if ($null -eq $osCimInstance) {
-          return "Offline"
-        } else {
-          return $osCimInstance.LastBootUptime.ToString("yyyy-MM-dd HH:mm:ss")
-        }
-      }
     }
   }
 }
