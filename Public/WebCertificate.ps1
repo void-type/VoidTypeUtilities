@@ -32,13 +32,15 @@ function Get-WebCertificateExpiration {
       $certName = $certificate.GetName()
       $certIssuer = $certificate.GetIssuerName()
 
-      $certExpiryInfo = [PSCustomObject] @{
+      $properties = @{
         Url            = $Url;
         Name           = $certName;
         Issuer         = $certIssuer;
         ExpirationDate = $expirationDate;
         ExpiresInDays  = $certExpiresIn;
       }
+
+      $certExpiryInfo = New-Object -TypeName PSObject -Property $properties
 
       Write-Output -InputObject $certExpiryInfo
     }
