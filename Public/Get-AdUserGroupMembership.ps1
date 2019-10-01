@@ -6,7 +6,7 @@ function Get-AdUserGroupMembership {
     .EXAMPLE
     Get-AdUserGroupMembership -Identity AdminContoso02
 
-    .Example
+    .EXAMPLE
     Get-AdUserGroupMembership AdminContoso02
     #>
   [CmdletBinding()]

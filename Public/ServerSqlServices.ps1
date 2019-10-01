@@ -8,7 +8,7 @@ function Get-ServerSqlServices {
   Note that this only shows Windows Server 2012 and newer databases.
 
   .EXAMPLE
-  PS C:\> Show-PrpaDbSqlServices
+  PS C:\> Get-ServerSqlServices
   #>
   [CmdletBinding()]
   param(
@@ -35,7 +35,7 @@ function Start-ServerSqlServices {
   Starts all SQL Services on a server.
 
   .EXAMPLE
-  PS C:\> Start-PrpaDbSqlServices -ComputerName AppDb
+  PS C:\> Start-ServerSqlServices -ComputerName AppDb
   #>
 
   [CmdletBinding()]param(

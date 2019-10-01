@@ -6,7 +6,7 @@ function Get-WebCertificateExpiration {
     Queries the site URL and gets the HTTPS certificate, then returns the
     certificate expiration date.
     .EXAMPLE
-    PS C:\> Show-WebCertificateExpiration -Url "Google.com"
+    PS C:\> Get-WebCertificateExpiration -Url "Google.com"
     #>
   [CmdletBinding()]
   param(
@@ -54,7 +54,7 @@ function Get-WebCertificate {
   .DESCRIPTION
     Queries the site URL and gets the HTTPS certificate.
   .EXAMPLE
-    PS C:\> Get-Certificate -Url "Google.com"
+    PS C:\> Get-WebCertificate -Url "Google.com"
   #>
   [CmdletBinding()]
   param(
