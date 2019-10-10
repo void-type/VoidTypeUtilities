@@ -27,7 +27,6 @@ function Backup-Folder {
     [ValidateScript( { Test-Path -Path $_ })]
     [string]$Source,
     [Parameter(Mandatory = $true)]
-    [ValidateScript( { Test-Path -Path $_ })]
     [string]$Destination,
     [switch]$Restore
   )
