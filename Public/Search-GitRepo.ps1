@@ -20,7 +20,7 @@ function Search-GitRepo {
   Process {
     $SearchText | ForEach-Object {
       Write-Verbose "Searching $_"
-      return git grep "$_" $(git rev-list --all)
+      return git grep "$_" $(git rev-list --reverse --all)
     }
   }
 }
