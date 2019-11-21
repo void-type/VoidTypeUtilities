@@ -1,6 +1,3 @@
-# TODO: add the names of all the sql services we care about here
-$private:services = "MSSQLSERVER", "SQLSERVERAGENT"
-
 function Get-ServerSqlServices {
   <#
   .SYNOPSIS
@@ -24,7 +21,7 @@ function Get-ServerSqlServices {
 
   return Invoke-Command -ComputerName $ComputerName -ScriptBlock {
     Get-Service |
-      Where-Object { $_.Name -in $services }
+      Where-Object { $_.Name -in "MSSQLSERVER", "SQLSERVERAGENT" }
   } |
     Sort-Object -Property PSComputerName
 }
@@ -51,7 +48,7 @@ function Start-ServerSqlServices {
 
   return Invoke-Command -ComputerName $ComputerName -ScriptBlock {
     Get-Service |
-      Where-Object { $_.Name -in $services } |
+      Where-Object { $_.Name -in "MSSQLSERVER", "SQLSERVERAGENT" } |
       Start-Service
   }
 }
