@@ -19,7 +19,7 @@ function Get-ServerSqlServices {
     [string[]]$ComputerName
   )
 
-  Process {
+  process {
     $ComputerName | ForEach-Object {
       $serverName = $_;
       Write-Verbose "Checking $serverName"

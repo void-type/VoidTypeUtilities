@@ -17,7 +17,7 @@ function Search-GitRepo {
     [string[]]$SearchText
   )
 
-  Process {
+  process {
     $SearchText | ForEach-Object {
       Write-Verbose "Searching $_"
       git grep "$_" $(git rev-list --reverse --all) | Write-Output
