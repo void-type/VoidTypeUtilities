@@ -19,11 +19,18 @@ function Get-ServerSqlServices {
     [string[]]$ComputerName
   )
 
-  return Invoke-Command -ComputerName $ComputerName -ScriptBlock {
-    Get-Service |
-      Where-Object { $_.Name -in "MSSQLSERVER", "SQLSERVERAGENT" }
-  } |
-    Sort-Object -Property PSComputerName
+  Process {
+    $ComputerName | ForEach-Object {
+      $serverName = $_;
+      Write-Verbose "Checking $serverName"
+      Invoke-Command -ComputerName $serverName -ScriptBlock {
+        Get-Service |
+          Where-Object { $_.Name -in "MSSQLSERVER", "SQLSERVERAGENT" }
+      } |
+        Sort-Object -Property PSComputerName |
+        Write-Output
+    }
+  }
 }
 
 function Start-ServerSqlServices {
@@ -46,9 +53,10 @@ function Start-ServerSqlServices {
     [string[]]$ComputerName
   )
 
-  return Invoke-Command -ComputerName $ComputerName -ScriptBlock {
+  Invoke-Command -ComputerName $ComputerName -ScriptBlock {
     Get-Service |
       Where-Object { $_.Name -in "MSSQLSERVER", "SQLSERVERAGENT" } |
-      Start-Service
+      Start-Service |
+      Write-Output
   }
 }

@@ -77,7 +77,8 @@ function Start-ServerGetFailedUpdatesJob {
         @{
           Label      = "FailedUpdateName";
           Expression = { $_.ProductName }
-        }
+        } |
+        Write-Output
     }
   }
 }
@@ -115,7 +116,8 @@ function Start-ServerGetPendingUpdatesJob {
         }, @{
           Label      = "PendingUpdateName";
           Expression = { $_.Title }
-        }
+        } |
+        Write-Output
     }
   }
 }
