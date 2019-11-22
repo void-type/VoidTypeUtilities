@@ -25,7 +25,7 @@ function Get-ServerSqlServices {
       Write-Verbose "Checking $serverName"
       Invoke-Command -ComputerName $serverName -ScriptBlock {
         Get-Service |
-          Where-Object { $_.Name -in "MSSQLSERVER", "SQLSERVERAGENT" }
+          Where-Object { $_.Name -in "MSSQLSERVER", "SQLSERVERAGENT", "MsDtsServer130" }
       } |
         Sort-Object -Property PSComputerName |
         Write-Output
@@ -55,7 +55,7 @@ function Start-ServerSqlServices {
 
   Invoke-Command -ComputerName $ComputerName -ScriptBlock {
     Get-Service |
-      Where-Object { $_.Name -in "MSSQLSERVER", "SQLSERVERAGENT" } |
+      Where-Object { $_.Name -in "MSSQLSERVER", "SQLSERVERAGENT", "MsDtsServer130" } |
       Start-Service |
       Write-Output
   }
