@@ -27,3 +27,41 @@ function Get-DotnetWebAppLogs {
 
   return $logs
 }
+
+function Find-DotnetClassFileNameMismatch {
+  <#
+      .SYNOPSIS
+      Show all *.cs files where the top class name doesn't match the file name.
+
+      .EXAMPLE
+      Find-DotnetClassFileNameMismatch
+
+      .EXAMPLE
+      Find-DotnetClassFileNameMismatch -Path "./MyProject/"
+      #>
+  [CmdletBinding()]param(
+    # Root path to find C# files.
+    [string]$Path = "./"
+  )
+
+  Get-ChildItem -Include *.cs -Recurse -Path $Path |
+    ForEach-Object {
+      [Microsoft.PowerShell.Commands.MatchInfo[]]$matches = $_ | Select-String -Pattern 'public class' -SimpleMatch
+
+      if ($matches.Length -gt 0) {
+        $match = $matches[0]
+
+        if ($null -ne $match) {
+          $class = $match.Line.Split('class')[1].Split(' : ')[0].Trim()
+          $file = $match.filename.split('.')[0]
+
+          if ($class -ne $file) {
+            [PSCustomObject]@{
+              FileName  = $file
+              ClassName = $class
+            }
+          }
+        }
+      }
+    }
+}
