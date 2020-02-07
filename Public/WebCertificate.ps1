@@ -12,87 +12,61 @@ function Get-WebCertificate {
     # The URLs to get certificates from.
     [Parameter(
       Position = 1,
-      Mandatory = $True,
-      ValueFromPipeline = $True,
-      ValueFromPipelineByPropertyName = $True
+      Mandatory = $true,
+      ValueFromPipeline = $true,
+      ValueFromPipelineByPropertyName = $true
     )]
     [string[]]$Url,
 
+    # The port to connect to
     [int]$Port = 443
   )
 
   begin {
-    $TCPClient = New-Object -TypeName System.Net.Sockets.TCPClient
   }
 
   process {
-    foreach ($webSite in $Url) {
-      $TcpSocket = New-Object Net.Sockets.TcpClient($webSite, $Port)
-      $tcpstream = $TcpSocket.GetStream()
-      $Callback = { param($sender, $cert, $chain, $errors) return $true }
-      $SSLStream = New-Object -TypeName System.Net.Security.SSLStream -ArgumentList @($tcpstream, $True, $Callback)
+    foreach ($siteUrl in $Url) {
 
       try {
-        $SSLStream.AuthenticateAsClient($webSite)
-        $Certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($SSLStream.RemoteCertificate)
-      } finally {
-        $SSLStream.Dispose()
-      }
+        $tcpClient = New-Object -TypeName System.Net.Sockets.TCPClient($siteUrl, $Port)
 
-      Write-Output -InputObject $Certificate
+        try {
+
+          $callback = { param($sender, $cert, $chain, $errors) return $true }
+
+          $sslStream = New-Object -TypeName System.Net.Security.SSLStream -ArgumentList @($tcpClient.GetStream(), $true, $callback)
+
+          $sslStream.AuthenticateAsClient($siteUrl)
+          $certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($sslStream.RemoteCertificate)
+
+          [DateTime]$expirationDate = [System.DateTime]::Parse($certificate.GetExpirationDateString())
+          [int]$certExpiresIn = ($expirationDate - $(Get-Date -Hour 0 -Minute 0 -Second 0)).Days
+
+          $properties = @{
+            Url            = $siteUrl;
+            Name           = $certificate.GetName();
+            Issuer         = $certificate.GetIssuerName();
+            ExpirationDate = $expirationDate.ToString("s");
+            ExpiresInDays  = $certExpiresIn;
+          }
+
+          $certExpiryInfo = New-Object -TypeName PSObject -Property $properties
+
+          return $certExpiryInfo
+
+        } catch {
+          throw $_
+        } finally {
+          $tcpClient.Dispose()
+        }
+      } catch {
+        Write-Error "Could not reach the website $($siteUrl). Exception: $_"
+        exit 1
+      }
     }
   }
 
   end {
-    $TCPClient.Dispose()
-  }
-}
-
-function Get-WebCertificateExpiration {
-  <#
-    .SYNOPSIS
-    Query a site for certificate expiration.
-  .DESCRIPTION
-    Queries the site URL and gets the HTTPS certificate, then returns the
-    certificate expiration date.
-    .EXAMPLE
-    PS C:\> Get-WebCertificateExpiration -Url "Google.com"
-    #>
-  [CmdletBinding()]
-  param(
-    # The URLs to get certificates from.
-    [Parameter(
-      Position = 1,
-      Mandatory = $True,
-      ValueFromPipeline = $True,
-      ValueFromPipelineByPropertyName = $True
-    )]
-    [string[]]$Url,
-
-    [int]$Port = 443
-  )
-
-  process {
-
-    $certificates = Get-WebCertificate -Url $Url -Port $Port
-
-    foreach ($certificate in $certificates) {
-      [DateTime]$expirationDate = [System.DateTime]::Parse($certificate.GetExpirationDateString())
-      [int]$certExpiresIn = ($expirationDate - $(Get-Date -Hour 0 -Minute 0 -Second 0)).Days
-      $certName = $certificate.GetName()
-      $certIssuer = $certificate.GetIssuerName()
-
-      $properties = @{
-        Url            = $Url;
-        Name           = $certName;
-        Issuer         = $certIssuer;
-        ExpirationDate = $expirationDate;
-        ExpiresInDays  = $certExpiresIn;
-      }
-
-      $certExpiryInfo = New-Object -TypeName PSObject -Property $properties
-
-      Write-Output -InputObject $certExpiryInfo
-    }
   }
 }
