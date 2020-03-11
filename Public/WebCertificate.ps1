@@ -61,8 +61,7 @@ function Get-WebCertificate {
           $tcpClient.Dispose()
         }
       } catch {
-        Write-Error "Could not reach the website $($siteUrl). Exception: $_"
-        exit 1
+        Write-Error "Could not reach the website $($siteUrl). Exception $_"
       }
     }
   }
