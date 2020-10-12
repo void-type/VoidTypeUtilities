@@ -23,7 +23,7 @@ function Connect-PsExec {
     [string]$ComputerName,
     [Parameter(Position = 2)]
     [string]$Command = "powershell",
-    [PSCredential]$Credential = (Get-Credential)
+    [PSCredential]$Credential = (Get-Credential -Message "Enter credentials (DOMAIN\AdminUser)")
   )
 
   PsExec \\$ComputerName -u $Credential.UserName -p $Credential.GetNetworkCredential().Password -h $Command
