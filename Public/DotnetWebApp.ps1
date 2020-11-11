@@ -46,13 +46,13 @@ function Find-DotnetClassFileNameMismatch {
 
   Get-ChildItem -Include *.cs -Recurse -Path $Path |
     ForEach-Object {
-      [Microsoft.PowerShell.Commands.MatchInfo[]]$matches = $_ | Select-String -Pattern 'public class' -SimpleMatch
+      [Microsoft.PowerShell.Commands.MatchInfo[]]$matches = $_ | Select-String -Pattern 'public\s(\w*\s)*class'
 
       if ($matches.Length -gt 0) {
         $match = $matches[0]
 
         if ($null -ne $match) {
-          $class = $match.Line.Split('class')[1].Split(' : ')[0].Trim()
+          $class = $match.Line.Split('class')[1].Split(' : ')[0].Split('<')[0].Split('{')[0].Trim()
           $file = $match.filename.split('.')[0]
 
           if ($class -ne $file) {
