@@ -65,3 +65,21 @@ function Find-DotnetClassFileNameMismatch {
       }
     }
 }
+
+function Restart-DotnetWebApp {
+  <#
+  .SYNOPSIS
+    Restart an IIS webapp by adding an removing an app_offline.htm file.
+  .EXAMPLE
+    PS C:\> Restart-DotnetWebApp
+    Restarts the webapp that uses the current folder as it's root.
+  #>
+  [CmdletBinding()]
+  param (
+    # Path of the root app folder in IIS
+    [string]$Path = (Get-Location | Select-Object -ExpandProperty Path)
+  )
+  New-Item -ItemType File -Name 'app_offline.htm'
+  Start-Sleep -Seconds 2
+  Remove-Item -Path 'app_offline.htm'
+}
