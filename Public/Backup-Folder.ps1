@@ -1,7 +1,7 @@
 function Backup-Folder {
   <#
     .SYNOPSIS
-    Clones a folder.
+    Clones a folder. Note that this will delete any files from the destination that don't exist in the source unless you use the NoDelete flag!
 
     .DESCRIPTION
     Clones a folder with the ability to restore from the backup.
@@ -18,27 +18,41 @@ function Backup-Folder {
 
     Reverse the backup source and destination.
     #>
-  [CmdletBinding(
-    SupportsShouldProcess = $true,
-    ConfirmImpact = 'Medium'
-  )]
+  [CmdletBinding()]
   param(
+    # The source folder. Must exist.
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Test-Path -Path $_ })]
     [string]$Source,
+    # The destination folder. This folder will be created if it doesn't exist.
     [Parameter(Mandatory = $true)]
     [string]$Destination,
-    [switch]$Restore
+    # Reverses the order of souce and destination
+    [switch]$Restore,
+    # Disables the /MIR flag and prevent deletion of extra files.
+    [switch]$NoDelete
   )
 
-  # Run jobs
+  $roboCopyArgs = @()
+
   if ($Restore -eq $false) {
-    if ($PSCmdlet.ShouldProcess("Backing up from $source to $destination")) {
-      ROBOCOPY "$Source" "$Destination" /MIR /NFL /NDL /NP /MT:32 | Out-Host
-    }
+    $roboCopyArgs += $Source
+    $roboCopyArgs += $Destination
   } else {
-    if ($PSCmdlet.ShouldProcess("Restoring backup from $destination to $source")) {
-      ROBOCOPY "$Destination" "$Source" /MIR /NFL /NDL /NP /MT:32 | Out-Host
-    }
+    $roboCopyArgs += $Destination
+    $roboCopyArgs += $Source
   }
+
+  if ($NoDelete -eq $false) {
+    $roboCopyArgs += '/MIR'
+  }
+
+  $roboCopyArgs += @(
+    '/NFL'
+    '/NDL'
+    '/NP'
+    '/MT:32'
+  )
+
+  Robocopy.exe $roboCopyArgs
 }
