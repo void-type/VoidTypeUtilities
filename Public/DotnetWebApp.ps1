@@ -66,6 +66,44 @@ function Find-DotnetClassFileNameMismatch {
     }
 }
 
+function Find-DotnetNamespaceFileNameMismatch {
+  <#
+      .SYNOPSIS
+      Show all *.cs files where the namespace doesn't match the file path.
+
+      .EXAMPLE
+      Find-DotnetNamespaceFileNameMismatch
+
+      .EXAMPLE
+      Find-DotnetNamespaceFileNameMismatch -Path "./MyProject/"
+      #>
+  [CmdletBinding()]param(
+    # Root path to find C# files.
+    [string]$Path = "./"
+  )
+
+  Get-ChildItem -Recurse -Include *.csproj -Path $Path |
+    Select-Object -ExpandProperty DirectoryName |
+    Get-ChildItem -Exclude obj, bin |
+    ForEach-Object {
+      Get-ChildItem -Path $_.FullName -Recurse *.cs |
+        ForEach-Object {
+          $match = Select-String -Path $_.FullName -Pattern '^namespace ' -Raw
+
+          if ($null -eq $match) {
+            return;
+          }
+
+          $ns = $match.Split('namespace ')[1]
+          $path = $_.Directory.FullName.Replace('\', '.');
+
+          if (-not $path.Contains($ns)) {
+            $_.FullName
+          }
+        }
+      }
+}
+
 function Restart-DotnetWebApp {
   <#
   .SYNOPSIS
