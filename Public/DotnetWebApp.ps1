@@ -123,9 +123,28 @@ function Restart-DotnetWebApp {
   [CmdletBinding()]
   param (
     # Path of the root app folder in IIS
-    [string]$Path = (Get-Location | Select-Object -ExpandProperty Path)
+    [string]$Path = "./"
   )
-  New-Item -ItemType File -Name 'app_offline.htm'
+  New-Item -ItemType File -Path $Path -Name 'app_offline.htm'
   Start-Sleep -Seconds 2
-  Remove-Item -Path 'app_offline.htm'
+  Remove-Item -Path "$($Path)app_offline.htm"
+}
+
+function Format-DotnetCode {
+  <#
+  .SYNOPSIS
+    Run dotnet format and VoidCore naming convention checks.
+  .EXAMPLE
+    PS C:\> Format-DotnetCode
+    Restarts the webapp that uses the current folder as it's root.
+  #>
+  [CmdletBinding()]
+  param (
+    # Path of the root app folder in IIS
+    [string]$Path = "./"
+  )
+
+  dotnet format --fix-whitespace --fix-style warn
+  Find-DotnetNamespaceFileNameMismatch
+  Find-DotnetClassFileNameMismatch
 }
