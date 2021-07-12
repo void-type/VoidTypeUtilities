@@ -100,9 +100,9 @@ function Find-DotnetNamespaceFileNameMismatch {
           }
 
           $ns = $match.Split('namespace ')[1]
-          $path = $_.Directory.FullName.Replace('\', '.');
+          $filePath = $_.Directory.FullName.Replace('\', '.');
 
-          if (-not $path.Contains($ns)) {
+          if (-not $filePath.EndsWith($ns)) {
             [PSCustomObject]@{
               FileName  = $_.FullName
               Namespace = $ns
