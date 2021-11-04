@@ -54,5 +54,5 @@ function Backup-Folder {
     '/MT:32'
   )
 
-  Robocopy.exe $roboCopyArgs
+  Robocopy.exe $roboCopyArgs | Write-Output
 }
