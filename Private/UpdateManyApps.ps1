@@ -49,3 +49,8 @@ Get-ChildItem | ForEach-Object {
 }
 
 Pop-Location
+
+
+# Just some ad-hoc helpers
+# gci | foreach { pushd $_; ./build/build.ps1; if($LASTEXITCODE -ne 0) {throw "FAILED"}; popd; }
+# gci | foreach { pushd $_; git pull; popd; }
