@@ -56,7 +56,7 @@ function Find-DotnetClassFileNameMismatch {
             $match = $matches[0]
 
             if ($null -ne $match) {
-              $class = $match.Line.Split('class')[1].Split(' : ')[0].Split('<')[0].Split('{')[0].Trim()
+              $class = $match.Line.Split('class')[1].Split(' : ')[0].Split('<')[0].Split('{')[0].Trim().Split(' ')[0].Trim()
               $file = $match.Filename.split('.')[0]
 
               if ($class -ne $file) {
@@ -99,7 +99,7 @@ function Find-DotnetNamespaceFileNameMismatch {
             return;
           }
 
-          $ns = $match.Split('namespace ')[1]
+          $ns = $match.Split('namespace ')[1].Split(';')[0].Trim().Split(' ')[0].Trim()
           $filePath = $_.Directory.FullName.Replace('\', '.');
 
           if (-not $filePath.EndsWith($ns)) {
