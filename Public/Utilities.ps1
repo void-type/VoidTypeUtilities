@@ -31,3 +31,39 @@ function Invoke-ChildDirectories {
       }
   }
 }
+
+$defaultDevDir = 'C:\dev\'
+
+function cdd {
+  <#
+  .SYNOPSIS
+  Go to dev folder. Will go to first match of a partial project name.
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter()]
+    [string]
+    $ProjectName,
+    [Parameter()]
+    [string]
+    $DevDir = $defaultDevDir
+  )
+
+  if ([string]::IsNullOrWhitespace($ProjectName)) {
+    Set-Location -Path $DevDir
+    return;
+  }
+
+  $findPath = (Get-ChildItem -Path ($DevDir + $ProjectName + '*') -Directory | Select-Object -First 1).FullName
+
+  if ([string]::IsNullOrWhitespace($findPath)) {
+    Write-Error "No project found with name '$ProjectName' in $DevDir"
+    return;
+  }
+
+  Set-Location -Path $findPath
+}
+
+$getCddProjects = { (Get-ChildItem -Path $defaultDevDir -Directory).Name }
+
+Register-ArgumentCompleter -CommandName cdd -ParameterName ProjectName -ScriptBlock $getCddProjects
