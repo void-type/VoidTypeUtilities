@@ -1,10 +1,17 @@
-# Opens $profile directory in VSCode.
 function Edit-PsProfile {
+  <#
+  .SYNOPSIS
+  Opens $profile directory in VSCode.
+  #>
   code (Get-Item $profile).Directory
 }
 
 # Runs a command on each directory in the parent specified
 function Invoke-ChildDirectories {
+  <#
+  .SYNOPSIS
+  Runs a command on each directory in the parent specified
+  #>
   [CmdletBinding()]
   param (
     [Parameter()]

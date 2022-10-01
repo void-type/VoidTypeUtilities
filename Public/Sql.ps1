@@ -69,7 +69,6 @@ function Import-DbBacpac {
   <#
   .SYNOPSIS
   Import a local bacpac
-
   #>
   [CmdletBinding()]
   param (

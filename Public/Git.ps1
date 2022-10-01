@@ -46,3 +46,28 @@ function Copy-GitCommitFiles {
     }
 }
 
+function Remove-GitOldBranches {
+  <#
+      .SYNOPSIS
+      Quick prune of git repo branches (remote cache and local)
+      #>
+  [CmdletBinding()]
+  param (
+    [Parameter()]
+    [string[]]
+    $OtherBranchesToIgnore
+  )
+
+  git fetch --prune
+
+  git branch --merged |
+    ForEach-Object { $_.Trim() } |
+    # Doesn't start with * (current branch)
+    Where-Object { $_ -notmatch '^\*' } |
+    # Don't remove typical trunk branches
+    Where-Object { $_ -notin 'main', 'master', 'dev', 'develop' } |
+    # Don't remove specified branches
+    Where-Object { $_ -notin $OtherBranchesToIgnore } |
+    # Delete merged branch
+    ForEach-Object { git branch -d $_ }
+}
