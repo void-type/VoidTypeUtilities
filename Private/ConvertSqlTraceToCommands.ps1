@@ -1,1 +1,13 @@
-(Get-Content ./worktype.xml).TraceData.Events.Event.Column | where {$_.name -eq 'TextData' -and $_.'#text'.StartsWith('UPDATE')} | select -ExpandProperty '#text' | out-file out.sql
+function Convert-SqlTraceToCommands {
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $Path
+  )
+
+(Get-Content $Path).TraceData.Events.Event.Column |
+    Where-Object { $_.name -eq 'TextData' -and $_.'#text'.StartsWith('UPDATE') } |
+    Select-Object -ExpandProperty '#text' |
+    Write-Output
+}

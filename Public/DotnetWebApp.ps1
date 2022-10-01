@@ -133,14 +133,14 @@ function Restart-DotnetWebApp {
 function Format-DotnetCode {
   <#
   .SYNOPSIS
-    Run dotnet format and VoidCore naming convention checks.
+    Run dotnet format and naming convention checks.
   .EXAMPLE
     PS C:\> Format-DotnetCode
     Restarts the webapp that uses the current folder as it's root.
   #>
   [CmdletBinding()]
   param (
-    # Path of the root app folder in IIS
+    # Path of the project folder
     [string]$Path = "./"
   )
 

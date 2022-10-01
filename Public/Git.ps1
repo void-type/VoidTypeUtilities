@@ -24,3 +24,25 @@ function Search-GitRepo {
     }
   }
 }
+
+function Copy-GitCommitFiles {
+  <#
+      .SYNOPSIS
+      Copy files changed in a specific git commit
+      #>
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]$CommitId,
+    [string]$OutputDirectory = "~\Downloads\CommitCopy"
+  )
+
+  $changedFiles = git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $CommitId
+
+  $changedFiles |
+    ForEach-Object {
+      New-Item -ItemType File -Path "$OutputDirectory/$_" -Force
+      Copy-Item $_ -Destination "$OutputDirectory/$_"
+    }
+}
+
