@@ -34,6 +34,16 @@ function Invoke-ChildDirectories {
 
 $defaultDevDir = 'C:\dev\'
 
+function GetCddProjects {
+  param(
+    $commandName,
+    $parameterName,
+    $wordToComplete
+  )
+
+  return (Get-ChildItem -Path ($defaultDevDir + $wordToComplete + '*') -Directory).Name
+}
+
 function cdd {
   <#
   .SYNOPSIS
@@ -42,6 +52,7 @@ function cdd {
   [CmdletBinding()]
   param(
     [Parameter()]
+    [ArgumentCompleter({ GetCddProjects @args })]
     [string]
     $ProjectName,
     [Parameter()]
@@ -64,17 +75,15 @@ function cdd {
   Set-Location -Path $findPath
 }
 
-$getCddProjects = { (Get-ChildItem -Path $defaultDevDir -Directory).Name }
-
-Register-ArgumentCompleter -CommandName cdd -ParameterName ProjectName -ScriptBlock $getCddProjects
-
 function coded {
   <#
   .SYNOPSIS
   Open VSCode in project of dev folder. Will go to first match of a partial project name.
   #>
+  [CmdletBinding()]
   param (
     [Parameter(Mandatory = $true)]
+    [ArgumentCompleter({ GetCddProjects @args })]
     [string]
     $ProjectName,
     [Parameter()]
@@ -91,5 +100,3 @@ function coded {
 
   code $findPath
 }
-
-Register-ArgumentCompleter -CommandName coded -ParameterName ProjectName -ScriptBlock $getCddProjects
