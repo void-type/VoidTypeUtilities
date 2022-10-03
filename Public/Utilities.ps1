@@ -67,3 +67,29 @@ function cdd {
 $getCddProjects = { (Get-ChildItem -Path $defaultDevDir -Directory).Name }
 
 Register-ArgumentCompleter -CommandName cdd -ParameterName ProjectName -ScriptBlock $getCddProjects
+
+function coded {
+  <#
+  .SYNOPSIS
+  Open VSCode in project of dev folder. Will go to first match of a partial project name.
+  #>
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $ProjectName,
+    [Parameter()]
+    [string]
+    $DevDir = $defaultDevDir
+  )
+
+  $findPath = (Get-ChildItem -Path ($DevDir + $ProjectName + '*') -Directory | Select-Object -First 1).FullName
+
+  if ([string]::IsNullOrWhitespace($findPath)) {
+    Write-Error "No project found with name '$ProjectName' in $DevDir"
+    return;
+  }
+
+  code $findPath
+}
+
+Register-ArgumentCompleter -CommandName coded -ParameterName ProjectName -ScriptBlock $getCddProjects
