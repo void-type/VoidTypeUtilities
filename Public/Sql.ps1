@@ -87,7 +87,7 @@ function Import-DbBacpac {
   )
 
   function Get-SqlPackage {
-    $sqlPackageExePath = "$SqlPackageDir\SqlPackage.exe"
+    $sqlPackageExePath = "$SqlPackageDir/SqlPackage.exe"
 
     if (Test-Path -Path $sqlPackageExePath) {
       return $sqlPackageExePath
@@ -97,7 +97,7 @@ function Import-DbBacpac {
 
     New-Item -ItemType Directory -Path $SqlPackageDir -Force -ErrorAction Ignore | Out-Null
 
-    $sqlPackageZipPath = "$SqlPackageDir\SqlPackage.zip"
+    $sqlPackageZipPath = "$SqlPackageDir/SqlPackage.zip"
 
     Invoke-WebRequest -Uri "https://aka.ms/sqlpackage-windows" -OutFile $sqlPackageZipPath
 
@@ -124,4 +124,18 @@ function Import-DbBacpac {
   )
 
   & $sqlPackageExePath $sqlPackageExeArgs
+}
+
+function Convert-SqlTraceToCommands {
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $Path
+  )
+
+(Get-Content $Path).TraceData.Events.Event.Column |
+    Where-Object { $_.name -eq 'TextData' -and $_.'#text'.StartsWith('UPDATE') } |
+    Select-Object -ExpandProperty '#text' |
+    Write-Output
 }

@@ -47,7 +47,7 @@ function Show-AdGroupMembersReport {
 
   if ($ExportToDesktop) {
     $report |
-      Out-File "~/Desktop/Groups_$(Get-Date -Format yyyy-MM-dd).txt"
+      Out-File "~/Downloads/Groups_$(Get-Date -Format yyyy-MM-dd).txt"
   } else {
     $report
   }

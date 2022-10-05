@@ -34,7 +34,7 @@ function Copy-GitCommitFiles {
   param (
     [Parameter(Mandatory = $true)]
     [string]$CommitId,
-    [string]$OutputDirectory = "~\Downloads\CommitCopy"
+    [string]$OutputDirectory = "~/Downloads/CommitCopy"
   )
 
   $changedFiles = git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $CommitId

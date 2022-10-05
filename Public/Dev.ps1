@@ -1,3 +1,5 @@
+. "$PSScriptRoot/../Private/Dev.private.ps1"
+
 function Edit-PsProfile {
   <#
   .SYNOPSIS
@@ -30,18 +32,6 @@ function Invoke-ChildDirectories {
         Pop-Location
       }
   }
-}
-
-$defaultDevDir = 'C:\dev\'
-
-function GetCddProjects {
-  param(
-    $commandName,
-    $parameterName,
-    $wordToComplete
-  )
-
-  return (Get-ChildItem -Path ($defaultDevDir + $wordToComplete + '*') -Directory).Name
 }
 
 function cdd {
