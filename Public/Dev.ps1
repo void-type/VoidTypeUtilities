@@ -90,3 +90,11 @@ function coded {
 
   code $findPath
 }
+
+function Update-VoidTypeUtilities {
+  git -C "$((Get-Item $profile).Directory)\Modules\VoidTypeUtilities" pull
+}
+
+function Show-VoidTypeUtilitiesVersion {
+  git -C "$((Get-Item $profile).Directory)\Modules\VoidTypeUtilities" status
+}
