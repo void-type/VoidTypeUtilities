@@ -13,19 +13,16 @@ function Get-FileVersionInfo {
   [CmdletBinding()]
   param(
     [Parameter(
-      Position = 1,
-      ValuefromPipelineByPropertyName = $true
+      ValueFromPipeline = $true,
+      ValueFromPipelineByPropertyName = $true
     )]
-    [string]$Path,
-    [Parameter(
-      ValueFromPipeline = $true
-    )]
-    [System.IO.FileInfo]$FileInfo
+    [System.IO.FileInfo[]]$Path
   )
 
-  if ($null -eq $FileInfo) {
-    $FileInfo = Get-ChildItem -Path $Path
+  process {
+    foreach ($p in $Path) {
+      $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($p.FullName)
+      Write-Output $version
+    }
   }
-
-  return [System.Diagnostics.FileVersionInfo]::GetVersionInfo($FileInfo.FullName)
 }
