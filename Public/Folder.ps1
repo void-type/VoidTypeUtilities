@@ -56,3 +56,30 @@ function Backup-Folder {
 
   Robocopy.exe $roboCopyArgs | Write-Output
 }
+
+function Compare-Folders {
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $FolderA,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $FolderB
+  )
+
+  Push-Location $FolderA
+  [string[]] $filesA = Get-ChildItem -Path $FolderA -Recurse | ForEach-Object { Resolve-Path -Relative $_ }
+  Pop-Location
+
+  Push-Location $FolderB
+  [string[]] $filesB = Get-ChildItem -Path $FolderB -Recurse | ForEach-Object { Resolve-Path -Relative $_ }
+  Pop-Location
+
+  Write-Host 'Missing in B'
+  $filesA | Where-Object { $_ -notin $filesB }
+  Write-Host
+  Write-Host 'Extra in B'
+  $filesB | Where-Object { $_ -notin $filesA }
+}
