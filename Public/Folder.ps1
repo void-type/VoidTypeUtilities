@@ -66,20 +66,76 @@ function Compare-Folders {
 
     [Parameter(Mandatory = $true)]
     [string]
-    $FolderB
+    $FolderB,
+
+    [switch]
+    $ByHash
   )
 
-  Push-Location $FolderA
-  [string[]] $filesA = Get-ChildItem -Path $FolderA -Recurse | ForEach-Object { Resolve-Path -Relative $_ }
-  Pop-Location
+  function GetFileInfos {
+    param (
+      [string] $FolderPath
+    )
 
-  Push-Location $FolderB
-  [string[]] $filesB = Get-ChildItem -Path $FolderB -Recurse | ForEach-Object { Resolve-Path -Relative $_ }
-  Pop-Location
+    if (-not(Test-Path $FolderPath)) {
+      throw "Path not found '$FolderPath'"
+    }
+
+    Push-Location $FolderPath
+
+    $fileInfos = Get-ChildItem -Path './' -Recurse -File |
+      ForEach-Object {
+        $filePath = Resolve-Path -Path $_ -Relative
+
+        $fileInfo = [PSCustomObject]@{
+          Path = $filePath
+          Hash = $null
+        }
+
+        if ($ByHash) {
+          $fileInfo.Hash = (Get-FileHash -Path $_ -Algorithm SHA256).Hash
+        }
+
+        return $fileInfo
+      }
+
+    Pop-Location
+
+    return $fileInfos
+  }
+
+  function GetEqualityString {
+    param (
+      [PSCustomObject]$FileInfo
+    )
+
+    if ($ByHash) {
+      return $FileInfo.Path + '|' + $FileInfo.Hash
+
+    } else {
+      return $FileInfo.Path
+    }
+  }
+
+  function CompareFileInfos {
+    param (
+      [PSCustomObject[]]$A,
+      [PSCustomObject[]]$B
+    )
+
+    [string[]] $itemsB = $B | ForEach-Object { return GetEqualityString -FileInfo $_ }
+
+    return $A | Where-Object { (GetEqualityString -FileInfo $_) -notin $itemsB }
+  }
+
+  $filesA = GetFileInfos -FolderPath $FolderA
+  $filesB = GetFileInfos -FolderPath $FolderB
 
   Write-Host 'Missing in B'
-  $filesA | Where-Object { $_ -notin $filesB }
+  CompareFileInfos -A $filesA -B $filesB | Format-Table
+
   Write-Host
+
   Write-Host 'Extra in B'
-  $filesB | Where-Object { $_ -notin $filesA }
+  CompareFileInfos -A $filesB -B $filesA | Format-Table
 }
