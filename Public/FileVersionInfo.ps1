@@ -16,12 +16,14 @@ function Get-FileVersionInfo {
       ValueFromPipeline = $true,
       ValueFromPipelineByPropertyName = $true
     )]
-    [System.IO.FileInfo[]]$Path
+    [string[]]$Path
   )
 
   process {
-    foreach ($p in $Path) {
-      $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($p.FullName)
+    [System.IO.FileInfo[]] $files = Get-ChildItem -Path $Path
+
+    foreach ($f in $files) {
+      $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($f.FullName)
       Write-Output $version
     }
   }
