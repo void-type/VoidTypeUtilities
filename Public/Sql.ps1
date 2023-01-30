@@ -1,10 +1,12 @@
-function Get-SqlDbData {
+. "$PSScriptRoot/../Private/Sql.private.ps1"
+
+function Get-SqlData {
   <#
     .SYNOPSIS
     Invoke a sql command and get data back.
 
     .EXAMPLE
-    Get-SqlDbData -ConnectionString "Server=Server;Database=database;" -CommandText "Select * From table"
+    Get-SqlData -ConnectionString "Server=Server;Database=database;" -CommandText "Select * From table"
     #>
   [cmdletbinding()]
   Param(
@@ -15,7 +17,7 @@ function Get-SqlDbData {
     [string]$CommandText,
 
     [Parameter(Mandatory = $false)]
-    [string]$CommandTimeout = 0
+    [string]$CommandTimeout = 60
   )
 
   $connection = New-Object System.Data.SqlClient.SqlConnection($ConnectionString)
@@ -28,18 +30,18 @@ function Get-SqlDbData {
   $adapter = New-Object -TypeName System.Data.SqlClient.SqlDataAdapter $command
   $dataset = New-Object -TypeName System.Data.DataSet
   $adapter.Fill($dataset)
-  return $dataset.Tables[0]
-
   $connection.Close()
+
+  return $dataset.Tables[0]
 }
 
-function Invoke-SqlDbCommand {
+function Invoke-SqlCommand {
   <#
     .SYNOPSIS
     Run a sql command against a db.
 
     .EXAMPLE
-    Invoke-SqlDbCommand -ConnectionString "Server=Server;Database=database;" -CommandText "Insert Into..."
+    Invoke-SqlCommand -ConnectionString "Server=Server;Database=database;" -CommandText "Insert Into..."
     #>
   [cmdletbinding()]
   Param(
@@ -50,7 +52,7 @@ function Invoke-SqlDbCommand {
     [string]$CommandText,
 
     [Parameter(Mandatory = $false)]
-    [string]$CommandTimeout = 0
+    [string]$CommandTimeout = 60
   )
 
   $connection = New-Object System.Data.SqlClient.SqlConnection($ConnectionString)
@@ -65,7 +67,7 @@ function Invoke-SqlDbCommand {
   $connection.Close()
 }
 
-function Import-DbBacpac {
+function Import-SqlBacpac {
   <#
   .SYNOPSIS
   Import a local bacpac
@@ -86,28 +88,6 @@ function Import-DbBacpac {
     $SqlPackageDir = "$((Get-Item $profile).Directory)/SqlPackage"
   )
 
-  function Get-SqlPackage {
-    $sqlPackageExePath = "$SqlPackageDir/SqlPackage.exe"
-
-    if (Test-Path -Path $sqlPackageExePath) {
-      return $sqlPackageExePath
-    }
-
-    Write-Host "Downloading SqlPackage..."
-
-    New-Item -ItemType Directory -Path $SqlPackageDir -Force -ErrorAction Ignore | Out-Null
-
-    $sqlPackageZipPath = "$SqlPackageDir/SqlPackage.zip"
-
-    Invoke-WebRequest -Uri "https://aka.ms/sqlpackage-windows" -OutFile $sqlPackageZipPath
-
-    Expand-Archive -Path $sqlPackageZipPath -DestinationPath $SqlPackageDir
-
-    Remove-Item -Path $sqlPackageZipPath
-
-    return $sqlPackageExePath
-  }
-
   $sqlPackageExePath = Get-SqlPackage
 
   if (-not (Test-Path -Path $sqlPackageExePath)) {
@@ -126,7 +106,50 @@ function Import-DbBacpac {
   & $sqlPackageExePath $sqlPackageExeArgs
 }
 
+function Export-SqlBacpac {
+  <#
+  .SYNOPSIS
+  Export a bacpac
+  #>
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $Path,
+    [Parameter(Mandatory = $true)]
+    [string]
+    $SourceDatabase,
+    [string]
+    $SourceServer = '(LocalDb)\MSSQLLocalDB',
+    [string]
+    $ConnectionStringOptions = "Integrated Security=True;Persist Security Info=False;Connect Timeout=60",
+    [string]
+    $SqlPackageDir = "$((Get-Item $profile).Directory)/SqlPackage"
+  )
+
+  $sqlPackageExePath = Get-SqlPackage
+
+  if (-not (Test-Path -Path $sqlPackageExePath)) {
+    Write-Host "SQLPackage not found. Exiting."
+    return;
+  }
+
+  $connectionString = "Data Source=$SourceServer;Initial Catalog=$SourceDatabase;$ConnectionStringOptions"
+
+  $sqlPackageExeArgs = @(
+    "/Action:Export",
+    "/TargetFile:$Path"
+    "/SourceConnectionString:$connectionString"
+  )
+
+  & $sqlPackageExePath $sqlPackageExeArgs
+}
+
 function Convert-SqlTraceToCommands {
+  <#
+  .SYNOPSIS
+  Pulls UPDATE SQL commands from a trace file.
+  #>
   [CmdletBinding()]
   param (
     [Parameter(Mandatory = $true)]
