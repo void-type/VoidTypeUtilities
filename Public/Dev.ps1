@@ -47,7 +47,7 @@ function cdd {
     $ProjectName,
     [Parameter()]
     [string]
-    $DevDir = $defaultDevDir
+    $DevDir = $vtuDefaultDevDir
   )
 
   if ([string]::IsNullOrWhitespace($ProjectName)) {
@@ -78,7 +78,7 @@ function coded {
     $ProjectName,
     [Parameter()]
     [string]
-    $DevDir = $defaultDevDir
+    $DevDir = $vtuDefaultDevDir
   )
 
   $findPath = (Get-ChildItem -Path ($DevDir + $ProjectName + '*') -Directory | Select-Object -First 1).FullName

@@ -1,5 +1,9 @@
+$global:vtuDefaultSqlServer = '(LocalDb)\MSSQLLocalDB'
+$global:vtuDefaultSqlConnectionStringOptions =  'Integrated Security=True;Persist Security Info=False;Connect Timeout=60;Encrypt=True;TrustServerCertificate=True;'
+$global:vtuDefaultSqlPackageDir = "$((Get-Item $profile).Directory)/SqlPackage"
+
 function Get-SqlPackage {
-  $sqlPackageExePath = "$SqlPackageDir/SqlPackage.exe"
+  $sqlPackageExePath = "$vtuDefaultSqlPackageDir/SqlPackage.exe"
 
   if (Test-Path -Path $sqlPackageExePath) {
     return $sqlPackageExePath
@@ -7,15 +11,19 @@ function Get-SqlPackage {
 
   Write-Host "Downloading SqlPackage..."
 
-  New-Item -ItemType Directory -Path $SqlPackageDir -Force -ErrorAction Ignore | Out-Null
+  New-Item -ItemType Directory -Path $vtuDefaultSqlPackageDir -Force -ErrorAction Ignore | Out-Null
 
-  $sqlPackageZipPath = "$SqlPackageDir/SqlPackage.zip"
+  $sqlPackageZipPath = "$vtuDefaultSqlPackageDir/SqlPackage.zip"
 
   Invoke-WebRequest -Uri "https://aka.ms/sqlpackage-windows" -OutFile $sqlPackageZipPath
 
-  Expand-Archive -Path $sqlPackageZipPath -DestinationPath $SqlPackageDir
+  Expand-Archive -Path $sqlPackageZipPath -DestinationPath $vtuDefaultSqlPackageDir
 
   Remove-Item -Path $sqlPackageZipPath
+
+  if (-not (Test-Path -Path $sqlPackageExePath)) {
+    throw "SQLPackage not found. Exiting."
+  }
 
   return $sqlPackageExePath
 }

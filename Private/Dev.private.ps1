@@ -1,4 +1,4 @@
-$defaultDevDir = 'C:\dev\'
+$global:vtuDefaultDevDir = 'C:\dev\'
 
 function GetCddProjects {
   param(
@@ -7,5 +7,5 @@ function GetCddProjects {
     $wordToComplete
   )
 
-  return (Get-ChildItem -Path ($defaultDevDir + $wordToComplete + '*') -Directory).Name
+  return (Get-ChildItem -Path ($vtuDefaultDevDir + $wordToComplete + '*') -Directory).Name
 }

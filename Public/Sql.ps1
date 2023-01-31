@@ -1,5 +1,44 @@
 . "$PSScriptRoot/../Private/Sql.private.ps1"
 
+function Convert-SqlTraceToCommands {
+  <#
+  .SYNOPSIS
+  Pulls SQL commands from a trace file.
+  #>
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $Path
+  )
+
+(Get-Content $Path).TraceData.Events.Event.Column |
+    Where-Object { $_.name -eq 'TextData' -and $_.'#text' } |
+    Select-Object -ExpandProperty '#text' |
+    Write-Output
+}
+
+function New-SqlConnectionString {
+  <#
+  .SYNOPSIS
+  Build a connection string from options.
+  #>
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $Database,
+    [Parameter()]
+    [string]
+    $Server = $vtuDefaultSqlServer,
+    [Parameter()]
+    [string]
+    $ConnectionStringOptions = $vtuDefaultSqlConnectionStringOptions
+  )
+
+  return "Data Source=$Server;Initial Catalog=$Database;$ConnectionStringOptions"
+}
+
 function Get-SqlData {
   <#
     .SYNOPSIS
@@ -77,30 +116,32 @@ function Import-SqlBacpac {
     [Parameter(Mandatory = $true)]
     [string]
     $Path,
-    [Parameter(Mandatory = $true)]
+
+    [Parameter(Mandatory = $true, ParameterSetName = 'ConnectionString')]
     [string]
-    $TargetDatabase,
+    $ConnectionString,
+
+    [Parameter(Mandatory = $true, ParameterSetName = 'ConnectionParameters')]
     [string]
-    $TargetServer = '(LocalDb)\MSSQLLocalDB',
+    $Database,
+    [Parameter(ParameterSetName = 'ConnectionParameters')]
     [string]
-    $ConnectionStringOptions = "Integrated Security=True;Persist Security Info=False;Connect Timeout=60",
+    $Server = $vtuDefaultSqlServer,
+    [Parameter(ParameterSetName = 'ConnectionParameters')]
     [string]
-    $SqlPackageDir = "$((Get-Item $profile).Directory)/SqlPackage"
+    $ConnectionStringOptions = $vtuDefaultSqlConnectionStringOptions
   )
 
   $sqlPackageExePath = Get-SqlPackage
 
-  if (-not (Test-Path -Path $sqlPackageExePath)) {
-    Write-Host "SQLPackage not found. Exiting."
-    return;
+  if ([string]::IsNullOrWhiteSpace($ConnectionString)) {
+    $ConnectionString = New-SqlConnectionString -Database $Database -Server $Server -ConnectionStringOptions $ConnectionStringOptions
   }
-
-  $connectionString = "Data Source=$TargetServer;Initial Catalog=$TargetDatabase;$ConnectionStringOptions"
 
   $sqlPackageExeArgs = @(
     "/Action:Import",
     "/SourceFile:$Path"
-    "/TargetConnectionString:$connectionString"
+    "/TargetConnectionString:$ConnectionString"
   )
 
   & $sqlPackageExePath $sqlPackageExeArgs
@@ -116,25 +157,27 @@ function Export-SqlBacpac {
     [Parameter(Mandatory = $true)]
     [string]
     $Path,
-    [Parameter(Mandatory = $true)]
+
+    [Parameter(Mandatory = $true, ParameterSetName = 'ConnectionString')]
     [string]
-    $SourceDatabase,
+    $ConnectionString,
+
+    [Parameter(Mandatory = $true, ParameterSetName = 'ConnectionParameters')]
     [string]
-    $SourceServer = '(LocalDb)\MSSQLLocalDB',
+    $Database,
+    [Parameter(ParameterSetName = 'ConnectionParameters')]
     [string]
-    $ConnectionStringOptions = "Integrated Security=True;Persist Security Info=False;Connect Timeout=60",
+    $Server = $vtuDefaultSqlServer,
+    [Parameter(ParameterSetName = 'ConnectionParameters')]
     [string]
-    $SqlPackageDir = "$((Get-Item $profile).Directory)/SqlPackage"
+    $ConnectionStringOptions = $vtuDefaultSqlConnectionStringOptions
   )
 
   $sqlPackageExePath = Get-SqlPackage
 
-  if (-not (Test-Path -Path $sqlPackageExePath)) {
-    Write-Host "SQLPackage not found. Exiting."
-    return;
+  if ([string]::IsNullOrWhiteSpace($ConnectionString)) {
+    $ConnectionString = New-SqlConnectionString -Database $Database -Server $Server -ConnectionStringOptions $ConnectionStringOptions
   }
-
-  $connectionString = "Data Source=$SourceServer;Initial Catalog=$SourceDatabase;$ConnectionStringOptions"
 
   $sqlPackageExeArgs = @(
     "/Action:Export",
@@ -143,22 +186,4 @@ function Export-SqlBacpac {
   )
 
   & $sqlPackageExePath $sqlPackageExeArgs
-}
-
-function Convert-SqlTraceToCommands {
-  <#
-  .SYNOPSIS
-  Pulls UPDATE SQL commands from a trace file.
-  #>
-  [CmdletBinding()]
-  param (
-    [Parameter(Mandatory = $true)]
-    [string]
-    $Path
-  )
-
-(Get-Content $Path).TraceData.Events.Event.Column |
-    Where-Object { $_.name -eq 'TextData' -and $_.'#text'.StartsWith('UPDATE') } |
-    Select-Object -ExpandProperty '#text' |
-    Write-Output
 }
