@@ -25,10 +25,24 @@ function Search-GitRepo {
   }
 }
 
+function Get-GitCommitFileNames {
+  <#
+      .SYNOPSIS
+      List the names of files that were changed in a specific git commit or commit range (eg: 80f94e0~1..f707969)
+      #>
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]$CommitId
+  )
+
+  return git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $CommitId
+}
+
 function Copy-GitCommitFiles {
   <#
       .SYNOPSIS
-      Copy files changed in a specific git commit
+      Copy files (the current state of them) that were changed in a specific git commit or commit range (eg: 80f94e0~1..f707969)
       #>
   [CmdletBinding()]
   param (
@@ -37,7 +51,7 @@ function Copy-GitCommitFiles {
     [string]$OutputDirectory = "~/Downloads/CommitCopy"
   )
 
-  $changedFiles = git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $CommitId
+  [string[]]$changedFiles = Get-GitCommitFileNames $CommitId
 
   $changedFiles |
     ForEach-Object {
