@@ -33,10 +33,13 @@ function Get-GitCommitFileNames {
   [CmdletBinding()]
   param (
     [Parameter(Mandatory = $true)]
-    [string]$CommitId
+    [string]$CommitId,
+    [switch]$Deleted
   )
 
-  return git diff-tree -r --no-commit-id --name-only --diff-filter=ACMRT $CommitId
+  $filter = if ($Deleted) { 'D' } else { 'ACMRT' }
+
+  return git diff-tree -r --no-commit-id --name-only --diff-filter=$filter $CommitId
 }
 
 function Copy-GitCommitFiles {
