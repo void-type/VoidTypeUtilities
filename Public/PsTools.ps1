@@ -22,11 +22,21 @@ function Connect-PsExec {
     [Parameter(Mandatory = $true, Position = 1)]
     [string]$ComputerName,
     [Parameter(Position = 2)]
-    [string]$Command = "powershell",
-    [PSCredential]$Credential = (Get-Credential -Message "Enter credentials (DOMAIN\AdminUser)")
+    [string]$Command = 'powershell',
+    [PSCredential]$Credential = (Get-Credential -Message 'Enter credentials (DOMAIN\AdminUser)')
   )
 
-  PsExec \\$ComputerName -u $Credential.UserName -p $Credential.GetNetworkCredential().Password -h $Command
+  $psExecExePath = Get-ToolsPsTools -Name 'PsExec'
+
+  $psExecArgs = @(
+    "\\$($ComputerName)"
+    "-u"
+    $($Credential.UserName)
+    "-p"
+    $($Credential.GetNetworkCredential().Password)
+    "-h"
+    $($Command)
+  )
+
+  & $psExecExePath $psExecArgs
 }
-
-

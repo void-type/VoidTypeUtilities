@@ -1,4 +1,14 @@
-. "$PSScriptRoot/../Private/Sql.private.ps1"
+$global:vtuDefaultSqlServer = '.'
+$global:vtuDefaultSqlConnectionStringOptions = 'Integrated Security=True;Persist Security Info=False;Connect Timeout=60;Encrypt=True;TrustServerCertificate=True;'
+
+function Set-SqlDefaultAsLocalDb {
+  <#
+  .SYNOPSIS
+  Call this in your Profile to setup default global vars to use LocalDB rather than a full local SQL Server.
+  #>
+  $global:vtuDefaultSqlServer = '(LocalDb)\MSSQLLocalDB'
+  $global:vtuDefaultSqlConnectionStringOptions = 'Integrated Security=True;Persist Security Info=False;Connect Timeout=60;'
+}
 
 function Convert-SqlTraceToCommands {
   <#
@@ -132,17 +142,19 @@ function Import-SqlBacpac {
     $ConnectionStringOptions = $vtuDefaultSqlConnectionStringOptions
   )
 
-  $sqlPackageExePath = Get-SqlPackage
+  $sqlPackageExePath = Get-ToolsSqlPackage
 
   if ([string]::IsNullOrWhiteSpace($ConnectionString)) {
     $ConnectionString = New-SqlConnectionString -Database $Database -Server $Server -ConnectionStringOptions $ConnectionStringOptions
   }
 
   $sqlPackageExeArgs = @(
-    "/Action:Import",
+    '/Action:Import',
     "/SourceFile:$Path"
     "/TargetConnectionString:$ConnectionString"
   )
+
+  Write-Verbose $ConnectionString
 
   & $sqlPackageExePath $sqlPackageExeArgs
 }
@@ -173,17 +185,19 @@ function Export-SqlBacpac {
     $ConnectionStringOptions = $vtuDefaultSqlConnectionStringOptions
   )
 
-  $sqlPackageExePath = Get-SqlPackage
+  $sqlPackageExePath = Get-ToolsSqlPackage
 
   if ([string]::IsNullOrWhiteSpace($ConnectionString)) {
     $ConnectionString = New-SqlConnectionString -Database $Database -Server $Server -ConnectionStringOptions $ConnectionStringOptions
   }
 
   $sqlPackageExeArgs = @(
-    "/Action:Export",
+    '/Action:Export',
     "/TargetFile:$Path"
-    "/SourceConnectionString:$connectionString"
+    "/SourceConnectionString:$ConnectionString"
   )
+
+  Write-Verbose $ConnectionString
 
   & $sqlPackageExePath $sqlPackageExeArgs
 }
