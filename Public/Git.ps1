@@ -51,8 +51,10 @@ function Copy-GitCommitFiles {
   param (
     [Parameter(Mandatory = $true)]
     [string]$CommitId,
-    [string]$OutputDirectory = "~/Downloads/CommitCopy"
+    [string]$OutputDirectory = "~/Downloads/CommitCopy-{CommitId}"
   )
+
+  $OutputDirectory = $OutputDirectory -replace '{CommitId}', $CommitId
 
   [string[]]$changedFiles = Get-GitCommitFileNames $CommitId
 
