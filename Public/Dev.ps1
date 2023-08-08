@@ -25,9 +25,9 @@ function Invoke-ChildDirectories {
   process {
     Get-ChildItem -Path $Path |
       ForEach-Object {
-        $currentDirectory = $_;
+        $currentDirectory = $_
 
-        Push-Location $currentDirectory;
+        Push-Location $currentDirectory
         Invoke-Command -ScriptBlock $DirectoryScriptBlock | Write-Host
         Pop-Location
       }
@@ -42,27 +42,12 @@ function cdd {
   [CmdletBinding()]
   param(
     [Parameter()]
-    [ArgumentCompleter({ GetCddProjects @args })]
+    [ArgumentCompleter({ GetCddProjectNames @args })]
     [string]
-    $ProjectName,
-    [Parameter()]
-    [string]
-    $DevDir = $vtuDefaultDevDir
+    $ProjectName
   )
 
-  if ([string]::IsNullOrWhitespace($ProjectName)) {
-    Set-Location -Path $DevDir
-    return;
-  }
-
-  $findPath = (Get-ChildItem -Path ($DevDir + $ProjectName + '*') -Directory | Select-Object -First 1).FullName
-
-  if ([string]::IsNullOrWhitespace($findPath)) {
-    Write-Error "No project found with name '$ProjectName' in $DevDir"
-    return;
-  }
-
-  Set-Location -Path $findPath
+  Set-Location -Path (ResolveCddPath -ProjectName $ProjectName)
 }
 
 function coded {
@@ -72,23 +57,13 @@ function coded {
   #>
   [CmdletBinding()]
   param (
-    [Parameter(Mandatory = $true)]
-    [ArgumentCompleter({ GetCddProjects @args })]
-    [string]
-    $ProjectName,
     [Parameter()]
+    [ArgumentCompleter({ GetCddProjectNames @args })]
     [string]
-    $DevDir = $vtuDefaultDevDir
+    $ProjectName
   )
 
-  $findPath = (Get-ChildItem -Path ($DevDir + $ProjectName + '*') -Directory | Select-Object -First 1).FullName
-
-  if ([string]::IsNullOrWhitespace($findPath)) {
-    Write-Error "No project found with name '$ProjectName' in $DevDir"
-    return;
-  }
-
-  code $findPath
+  code (ResolveCddPath -ProjectName $ProjectName)
 }
 
 function Update-VoidTypeUtilities {
