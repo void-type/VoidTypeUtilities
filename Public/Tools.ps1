@@ -16,9 +16,9 @@ function Get-ToolsSqlPackage {
   }
 
   if (-not $IgnorePath) {
-    [string]$pathSource = (Get-Command 'SqlPackage').Source
+    [string]$pathSource = (Get-Command 'SqlPackage' -ErrorAction SilentlyContinue).Source
 
-    if ($null -ne $pathSource) {
+    if (-not [string]::IsNullOrWhiteSpace($pathSource)) {
       return $pathSource
     }
   }
