@@ -56,9 +56,9 @@ function Get-ToolsPsTools {
   }
 
   if (-not $IgnorePath) {
-    [string]$pathSource = (Get-Command $Name).Source
+    [string]$pathSource = (Get-Command $Name -ErrorAction SilentlyContinue).Source
 
-    if ($null -ne $pathSource) {
+    if (-not [string]::IsNullOrWhiteSpace($pathSource)) {
       return $pathSource
     }
   }
