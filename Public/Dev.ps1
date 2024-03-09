@@ -8,6 +8,14 @@ function Edit-PsProfile {
   code (Get-Item $profile).Directory
 }
 
+function Edit-DotnetUserSecrets {
+  <#
+  .SYNOPSIS
+  Opens .NET UserSecrets directory.
+  #>
+  code $env:APPDATA\microsoft\UserSecrets\
+}
+
 # Runs a command on each directory in the parent specified
 function Invoke-ChildDirectories {
   <#
@@ -64,12 +72,4 @@ function coded {
   )
 
   code (ResolveCddPath -ProjectName $ProjectName)
-}
-
-function Update-VoidTypeUtilities {
-  git -C "$((Get-Item $profile).Directory)\Modules\VoidTypeUtilities" pull
-}
-
-function Show-VoidTypeUtilitiesVersion {
-  git -C "$((Get-Item $profile).Directory)\Modules\VoidTypeUtilities" status
 }
