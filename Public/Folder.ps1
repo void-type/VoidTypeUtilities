@@ -21,13 +21,17 @@ function Backup-Folder {
   [CmdletBinding()]
   param(
     # The source folder. Must exist.
+    # Source Directory (drive:\path or \\server\share\path).
     [Parameter(Mandatory = $true)]
     [ValidateScript( { Test-Path -Path $_ })]
     [string]$Source,
     # The destination folder. This folder will be created if it doesn't exist.
+    # Destination Dir (drive:\path or \\server\share\path).
     [Parameter(Mandatory = $true)]
     [string]$Destination,
-    # Reverses the order of souce and destination
+    # File(s) to copy (names/wildcards: default is "*.*").
+    [string[]]$File,
+    # Reverses the order of source and destination
     [switch]$Restore,
     # Disables the /MIR flag and prevent deletion of extra files.
     [switch]$NoDelete
@@ -41,6 +45,10 @@ function Backup-Folder {
   } else {
     $roboCopyArgs += $Destination
     $roboCopyArgs += $Source
+  }
+
+  foreach ($f in $File) {
+    $roboCopyArgs += $f
   }
 
   if ($NoDelete -eq $false) {
