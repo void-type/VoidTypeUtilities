@@ -19,10 +19,10 @@ function Test-UrlResponse {
 
       do {
         try {
-          $response = Invoke-WebRequest -Uri $Url -Method Head -UseBasicParsing -TimeoutSec 10
+          Invoke-WebRequest -Uri $Url -Method Head -UseBasicParsing -TimeoutSec 10 | Out-Null
 
           # Success output
-          $urlResult.Result = $true
+          $urlResult.Success = $true
           Write-Output $urlResult
           break
         } catch {
