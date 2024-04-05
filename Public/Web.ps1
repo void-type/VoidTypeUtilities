@@ -12,22 +12,21 @@ function Test-UrlResponse {
       $retryCount = 0
 
       $urlResult = New-Object -TypeName PSObject -Property @{
-        Url    = $Url
-        Result = $null
+        Url     = $Url
+        Success = $false
+        Error   = ''
       }
 
       do {
         try {
           $response = Invoke-WebRequest -Uri $Url -Method Head -UseBasicParsing -TimeoutSec 10
 
-          if ($response.StatusCode -eq 200) {
-            $urlResult.Result = $true
-            Write-Output $urlResult
-            break
-          } else {
-            Write-Verbose "Unsuccessful response code: $($response.StatusCode). Retrying..."
-          }
+          # Success output
+          $urlResult.Result = $true
+          Write-Output $urlResult
+          break
         } catch {
+          $urlResult.Error = $_
           Write-Verbose "Error occurred: $_. Retrying..."
         }
 
@@ -36,10 +35,8 @@ function Test-UrlResponse {
         Start-Sleep -Seconds $retryTimeout
       } while ($retryCount -lt $MaxRetries)
 
-      if (-not $urlResult.Result) {
-        $urlResult.Result = $false
-        Write-Output $urlResult
-      }
+      # Error output
+      Write-Output $urlResult
     }
   }
 }
