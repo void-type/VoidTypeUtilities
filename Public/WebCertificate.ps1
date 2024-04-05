@@ -33,7 +33,7 @@ function Get-WebCertificate {
 
         try {
 
-          $callback = { param($sender, $cert, $chain, $errors) return $true }
+          $callback = { param($senderVar, $cert, $chain, $errors) return $true }
 
           $sslStream = New-Object -TypeName System.Net.Security.SSLStream -ArgumentList @($tcpClient.GetStream(), $true, $callback)
 

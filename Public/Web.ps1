@@ -7,39 +7,39 @@ function Test-UrlResponse {
     [int]$TimeoutFactorSeconds = 5
   )
 
-  begin {
-    $ResultHashTable = @{}
-  }
-
   process {
     foreach ($Url in $Urls) {
       $retryCount = 0
+
+      $urlResult = New-Object -TypeName PSObject -Property @{
+        Url    = $Url
+        Result = $null
+      }
+
       do {
         try {
           $response = Invoke-WebRequest -Uri $Url -Method Head -UseBasicParsing -TimeoutSec 10
 
           if ($response.StatusCode -eq 200) {
-            $ResultHashTable[$Url] = $true
+            $urlResult.Result = $true
+            Write-Output $urlResult
             break
           } else {
-            Write-Host "Unsuccessful response code: $($response.StatusCode). Retrying..."
+            Write-Verbose "Unsuccessful response code: $($response.StatusCode). Retrying..."
           }
         } catch {
-          Write-Host "Error occurred: $_. Retrying..."
+          Write-Verbose "Error occurred: $_. Retrying..."
         }
 
         $retryCount++
-        $retryTimeout = [Math]::Pow($TimeoutFactorSeconds, $retryCount + 1) # Calculate retry timeout using exponent of retry count + 1
+        $retryTimeout = [Math]::Pow($TimeoutFactorSeconds, $retryCount + 1)
         Start-Sleep -Seconds $retryTimeout
       } while ($retryCount -lt $MaxRetries)
 
-      if (-not $ResultHashTable.ContainsKey($Url)) {
-        $ResultHashTable[$Url] = $false
+      if (-not $urlResult.Result) {
+        $urlResult.Result = $false
+        Write-Output $urlResult
       }
     }
-  }
-
-  end {
-    return $ResultHashTable
   }
 }
