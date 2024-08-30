@@ -4,7 +4,8 @@ function Test-UrlResponse {
     [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
     [string[]]$Urls,
     [int]$MaxRetries = 3,
-    [int]$TimeoutFactorSeconds = 5
+    [int]$TimeoutFactorSeconds = 5,
+    [string]$HttpMethod = 'Head'
   )
 
   process {
@@ -19,7 +20,7 @@ function Test-UrlResponse {
 
       do {
         try {
-          Invoke-WebRequest -Uri $Url -Method Head -UseBasicParsing -TimeoutSec 10 | Out-Null
+          Invoke-WebRequest -Uri $Url -Method $HttpMethod -UseBasicParsing -TimeoutSec 10 | Out-Null
 
           # Success output
           $urlResult.Success = $true
