@@ -81,3 +81,55 @@ function Get-ToolsPsTools {
 
   return $psExecExePath
 }
+
+function Get-ToolsVsWhere {
+  [CmdletBinding()]
+  param (
+  )
+
+  return "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+}
+
+function Get-ToolsMsBuild {
+  [CmdletBinding()]
+  param (
+  )
+
+  $vswhere = Get-ToolsVsWhere
+
+  return & $vswhere -latest -requires 'Microsoft.Component.MSBuild' -find 'MSBuild\**\Bin\MSBuild.exe' |
+    Select-Object -First 1
+}
+
+function Get-ToolsNuget {
+  [CmdletBinding()]
+  param (
+    [switch]$IgnorePath
+  )
+
+  $nugetExePath = "$vtuDefaultPsToolsDir/nuget.exe"
+
+  if (Test-Path -Path $nugetExePath) {
+    return $nugetExePath
+  }
+
+  if (-not $IgnorePath) {
+    [string]$pathSource = (Get-Command 'nuget' -ErrorAction SilentlyContinue).Source
+
+    if (-not [string]::IsNullOrWhiteSpace($pathSource)) {
+      return $pathSource
+    }
+  }
+
+  Write-Host 'Downloading nuget...'
+
+  New-Item -ItemType Directory -Path $vtuDefaultPsToolsDir -Force -ErrorAction Ignore | Out-Null
+
+  Invoke-WebRequest -Uri 'https://dist.nuget.org/win-x86-commandline/latest/nuget.exe' -OutFile $nugetExePath
+
+  if (-not (Test-Path -Path $nugetExePath)) {
+    throw 'Nuget not found. Exiting.'
+  }
+
+  return $nugetExePath
+}

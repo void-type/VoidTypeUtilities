@@ -11,7 +11,7 @@ function Get-DotnetWebAppLogs {
       #>
   [CmdletBinding()]param(
     # Path where the app log files are stored.
-    [string]$Path = "./",
+    [string]$Path = './',
 
     # Exclude informational
     [switch]$ExcludeInfo
@@ -19,7 +19,7 @@ function Get-DotnetWebAppLogs {
 
   $logs = Get-ChildItem -Path $Path |
     Get-Content |
-    Where-Object { $_ -notlike "*Starting web host." }
+    Where-Object { $_ -notlike '*Starting web host.' }
 
   if ($ExcludeInfo) {
     $logs = $logs | Where-Object { $_ -notlike '*`[INF`]*' }
@@ -41,7 +41,7 @@ function Find-DotnetClassFileNameMismatch {
       #>
   [CmdletBinding()]param(
     # Root path to find C# files.
-    [string]$Path = "./"
+    [string]$Path = './'
   )
 
   Get-ChildItem -Recurse -Include *.csproj -Path $Path |
@@ -84,7 +84,7 @@ function Find-DotnetNamespaceFileNameMismatch {
       #>
   [CmdletBinding()]param(
     # Root path to find C# files.
-    [string]$Path = "./"
+    [string]$Path = './'
   )
 
   Get-ChildItem -Recurse -Include *.csproj -Path $Path |
@@ -96,11 +96,11 @@ function Find-DotnetNamespaceFileNameMismatch {
           $match = Select-String -Path $_.FullName -Pattern '^namespace ' -Raw
 
           if ($null -eq $match) {
-            return;
+            return
           }
 
           $ns = $match.Split('namespace ')[1].Split(';')[0].Trim().Split(' ')[0].Trim()
-          $filePath = $_.Directory.FullName.Replace('\', '.').Replace('/', '.');
+          $filePath = $_.Directory.FullName.Replace('\', '.').Replace('/', '.')
 
           if (-not $filePath.EndsWith($ns)) {
             [PSCustomObject]@{
@@ -123,7 +123,7 @@ function Restart-DotnetWebApp {
   [CmdletBinding()]
   param (
     # Path of the root app folder in IIS
-    [string]$Path = "./"
+    [string]$Path = './'
   )
   New-Item -ItemType File -Path $Path -Name 'app_offline.htm'
   Start-Sleep -Seconds 2
@@ -141,10 +141,51 @@ function Format-DotnetCode {
   [CmdletBinding()]
   param (
     # Path of the project folder
-    [string]$Path = "./"
+    [string]$Path = './'
   )
 
-  dotnet format --fix-whitespace --fix-style warn
-  Find-DotnetNamespaceFileNameMismatch
-  Find-DotnetClassFileNameMismatch
+  dotnet format
+  Find-DotnetNamespaceFileNameMismatch | Format-List
+  Find-DotnetClassFileNameMismatch | Format-List
+}
+
+function Build-DotnetApp {
+  <#
+  .SYNOPSIS
+    Build a .NET app (including framework apps) using VSWhere and Nuget. You must have a compatible version of Visual Studio installed.
+  .EXAMPLE
+    PS C:\> Build-DotnetApp
+    Builds the app that's in the current folder.
+  #>
+  [CmdletBinding()]
+  param (
+    # Path of the solution or project file. If using a project without NoRestore, you must specify the PacakgesDirectory.
+    [string]$Path = './*.sln',
+    [string]$Configuration = 'Debug',
+    [switch]$NoRestore,
+    [string]$PackagesDirectory
+  )
+
+  $projectPath = Get-ChildItem -Path $Path | Select-Object -First 1 -ExpandProperty FullName
+
+  # If we can't find the project file, try to find a solution file.
+  if ($null -eq $projectPath -or -not (Test-Path $projectPath)) {
+    $projectPath = Get-ChildItem -Path './*.csproj' | Select-Object -First 1 -ExpandProperty FullName
+  }
+
+  if (-not $NoRestore) {
+    $nuget = Get-ToolsNuget
+
+    if ($null -ne $PackagesDirectory) {
+      & $nuget restore "$projectPath" -PackagesDirectory $PackagesDirectory
+    } else {
+      & $nuget restore "$projectPath"
+    }
+  }
+
+  $msbuild = Get-ToolsMsBuild
+
+  if ($null -ne $msbuild) {
+    & $msbuild "$projectPath" '/t:build' "/p:Configuration=$Configuration" '/verbosity:minimal'
+  }
 }
