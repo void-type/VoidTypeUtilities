@@ -13,7 +13,14 @@ function Edit-DotnetUserSecrets {
   .SYNOPSIS
   Opens .NET UserSecrets directory.
   #>
-  code $env:APPDATA\microsoft\UserSecrets\
+
+  $folder = "$env:APPDATA\microsoft\UserSecrets\"
+
+  if (-not(Test-Path -Path $folder)) {
+    New-Item -ItemType Directory $folder
+  }
+
+  code $folder
 }
 
 # Runs a command on each directory in the parent specified
