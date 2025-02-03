@@ -23,18 +23,18 @@ function Install-WebCertificateInternal {
   $ErrorActionPreference = 'Stop'
 
   # Import new certs
-  $cert = Import-PfxCertificate -FilePath $PfxPath -CertStoreLocation Cert:\LocalMachine\My -Password (ConvertTo-SecureString -String $Secret -AsPlainText -Force)
-  [string]$certHash = $cert.GetCertHashString()
+  $newCert = Import-PfxCertificate -FilePath $PfxPath -CertStoreLocation Cert:\LocalMachine\My -Password (ConvertTo-SecureString -String $Secret -AsPlainText -Force)
+  [string]$newCertHash = $newCert.GetCertHashString()
 
   # Pull up old matching certs
   [string[]] $oldHashes = Get-ChildItem Cert:\LocalMachine\My\ |
-    Where-Object Subject -EQ $cert.Subject |
+    Where-Object {$_.Subject -eq $newCert.Subject -and $_.Thumbprint -ne $newCertHash} |
     Select-Object -ExpandProperty Thumbprint
 
   # Swap all old bindings to new bindings
   (Get-ChildItem IIS:Sites).Bindings.Collection |
     Where-Object { $_.CertificateHash -in $oldHashes } |
-    ForEach-Object { $_.AddSslCertificate($certHash , "my") }
+    ForEach-Object { $_.AddSslCertificate($newCertHash , "my") }
 
   # Remove old certs
   Get-ChildItem Cert:\LocalMachine\My\ |
