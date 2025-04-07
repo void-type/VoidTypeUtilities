@@ -107,7 +107,7 @@ function Get-ToolsNuget {
     [switch]$IgnorePath
   )
 
-  $nugetExePath = "$vtuDefaultPsToolsDir/nuget.exe"
+  $nugetExePath = "$vtuDefaultToolsDir/nuget.exe"
 
   if (Test-Path -Path $nugetExePath) {
     return $nugetExePath
@@ -123,7 +123,7 @@ function Get-ToolsNuget {
 
   Write-Host 'Downloading nuget...'
 
-  New-Item -ItemType Directory -Path $vtuDefaultPsToolsDir -Force -ErrorAction Ignore | Out-Null
+  New-Item -ItemType Directory -Path $vtuDefaultToolsDir -Force -ErrorAction Ignore | Out-Null
 
   Invoke-WebRequest -Uri 'https://dist.nuget.org/win-x86-commandline/latest/nuget.exe' -OutFile $nugetExePath
 
