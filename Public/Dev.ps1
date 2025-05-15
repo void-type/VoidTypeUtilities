@@ -8,13 +8,31 @@ function Edit-PsProfile {
   code (Get-Item $profile).Directory
 }
 
+function Edit-PsModules {
+  <#
+  .SYNOPSIS
+  Opens the first $PSModulePath directory in VSCode.
+  #>
+
+  $modulePath = $env:PSModulePath -split ':' | Select-Object -First 1
+
+  code $modulePath
+}
+
 function Edit-DotnetUserSecrets {
   <#
   .SYNOPSIS
   Opens .NET UserSecrets directory.
   #>
 
-  $folder = "$env:APPDATA\microsoft\UserSecrets\"
+  if ($IsLinux) {
+    $folder = "$HOME/.microsoft/usersecrets/"
+  } elseif ($IsMacOS) {
+    $folder = "$HOME/Library/Application Support/dotnet/usersecrets/"
+  } else {
+    # Windows
+    $folder = "$env:APPDATA\microsoft\UserSecrets\"
+  }
 
   if (-not(Test-Path -Path $folder)) {
     New-Item -ItemType Directory $folder
