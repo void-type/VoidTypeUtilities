@@ -202,7 +202,7 @@ function Export-SqlBacpac {
   & $sqlPackageExePath $sqlPackageExeArgs
 }
 
-Remove-SqlDatabase {
+function Remove-SqlDatabase {
   <#
   .SYNOPSIS
   Remove a SQL database.
