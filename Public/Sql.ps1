@@ -201,3 +201,28 @@ function Export-SqlBacpac {
 
   & $sqlPackageExePath $sqlPackageExeArgs
 }
+
+Remove-SqlDatabase {
+  <#
+  .SYNOPSIS
+  Remove a SQL database.
+  #>
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $Database,
+
+    [Parameter()]
+    [string]
+    $Server = $vtuDefaultSqlServer,
+
+    [Parameter()]
+    [string]
+    $ConnectionStringOptions = $vtuDefaultSqlConnectionStringOptions
+  )
+
+  $connectionString = New-SqlConnectionString -Database $Database -Server $Server -ConnectionStringOptions $ConnectionStringOptions
+
+  Invoke-SqlCommand -ConnectionString $connectionString -CommandText "DROP DATABASE [$Database]"
+}
