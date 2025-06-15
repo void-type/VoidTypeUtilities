@@ -222,7 +222,16 @@ function Remove-SqlDatabase {
     $ConnectionStringOptions = $vtuDefaultSqlConnectionStringOptions
   )
 
-  $connectionString = New-SqlConnectionString -Database $Database -Server $Server -ConnectionStringOptions $ConnectionStringOptions
+  # Connect to master database to avoid connection issues
+  $masterConnectionString = New-SqlConnectionString -Database "master" -Server $Server -ConnectionStringOptions $ConnectionStringOptions
 
-  Invoke-SqlCommand -ConnectionString $connectionString -CommandText "DROP DATABASE [$Database]"
+  # Set database to single user mode to force disconnect all users
+  $singleUserModeCommand = "ALTER DATABASE [$Database] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;"
+  Invoke-SqlCommand -ConnectionString $masterConnectionString -CommandText $singleUserModeCommand
+
+  # Drop the database with all physical files
+  $dropDatabaseCommand = "DROP DATABASE [$Database];"
+  Invoke-SqlCommand -ConnectionString $masterConnectionString -CommandText $dropDatabaseCommand
+
+  Write-Verbose "Database [$Database] has been dropped successfully."
 }
