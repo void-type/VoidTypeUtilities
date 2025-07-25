@@ -51,7 +51,7 @@ function Copy-GitCommitFiles {
   param (
     [Parameter(Mandatory = $true)]
     [string]$CommitId,
-    [string]$OutputDirectory = "~/Downloads/CommitCopy-{CommitId}"
+    [string]$OutputDirectory = '~/Downloads/CommitCopy-{CommitId}'
   )
 
   $OutputDirectory = $OutputDirectory -replace '{CommitId}', $CommitId
@@ -89,4 +89,67 @@ function Remove-GitOldBranches {
     Where-Object { $_ -notin $OtherBranchesToIgnore } |
     # Delete merged branch
     ForEach-Object { git branch -d $_ }
+}
+
+function Show-GitStatuses {
+  cdd
+
+  Invoke-ChildDirectories {
+    $currentDirectory = Get-Location | Get-Item | Select-Object -ExpandProperty Name
+
+    $gitStatus = git status --porcelain 2>$null
+
+    if ($gitStatus) {
+      # Count different types of changes
+      $added = ($gitStatus | Where-Object { $_ -match '^A' }).Count
+      $modified = ($gitStatus | Where-Object { $_ -match '^M' }).Count
+      $deleted = ($gitStatus | Where-Object { $_ -match '^D' }).Count
+      $renamed = ($gitStatus | Where-Object { $_ -match '^R' }).Count
+      $untracked = ($gitStatus | Where-Object { $_ -match '^\?\?' }).Count
+      # $staged = ($gitStatus | Where-Object { $_ -match '^[AMDRC]' }).Count
+      # $unstaged = ($gitStatus | Where-Object { $_ -match '^.[MD]' }).Count
+
+      # Get ahead/behind info
+      $aheadBehind = git rev-list --left-right --count HEAD...@ { u } 2>$null
+      if ($aheadBehind) {
+        $ahead = ($aheadBehind -split '\s+')[0]
+        $behind = ($aheadBehind -split '\s+')[1]
+      } else {
+        $ahead = 0
+        $behind = 0
+      }
+
+      # Build summary string with colors
+      $summary = @()
+      if ($behind -gt 0) { $summary += "↓$behind" }
+      if ($ahead -gt 0) { $summary += "↑$ahead" }
+      if ($added -gt 0) { $summary += @{ Text = 'A'; Number = $added; Color = 'Green' } }
+      if ($modified -gt 0) { $summary += @{ Text = 'M'; Number = $modified; Color = 'Yellow' } }
+      if ($deleted -gt 0) { $summary += @{ Text = 'D'; Number = $deleted; Color = 'Red' } }
+      if ($renamed -gt 0) { $summary += @{ Text = 'R'; Number = $renamed; Color = 'Cyan' } }
+      if ($untracked -gt 0) { $summary += @{ Text = 'U'; Number = $untracked; Color = 'Green' } }
+
+      if ($summary.Count -gt 0) {
+        Write-Host "$currentDirectory " -NoNewline
+        Write-Host ' [' -NoNewline -ForegroundColor Gray
+
+        $isFirst = $true
+        foreach ($item in $summary) {
+          if (-not $isFirst) { Write-Host ' ' -NoNewline }
+
+          if ($item -is [hashtable]) {
+            Write-Host $item.Number -NoNewline
+            Write-Host $item.Text -NoNewline -ForegroundColor $item.Color
+          } else {
+            Write-Host $item -NoNewline -ForegroundColor Yellow
+          }
+          $isFirst = $false
+        }
+
+        Write-Host ']' -ForegroundColor Gray
+      }
+    }
+  }
+
+  Pop-Location
 }
