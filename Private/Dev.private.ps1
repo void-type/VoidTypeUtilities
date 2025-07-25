@@ -1,4 +1,5 @@
 $global:vtuDefaultDevDir = 'C:\dev\'
+$global:vtuDefaultIde = 'code'
 
 function GetCddProjects {
   param(
@@ -37,7 +38,7 @@ function ResolveCddPath {
     return $vtuDefaultDevDir
   }
 
-  # In case the user didn't compelete, we'll complete it for them.
+  # In case the user didn't complete, we'll complete it for them.
   $ProjectDir = GetCddProjects -ProjectName $ProjectName | Select-Object -First 1
 
   if ($null -eq $ProjectDir) {

@@ -22,7 +22,7 @@ function Convert-SqlTraceToCommands {
     $Path
   )
 
-(Get-Content $Path).TraceData.Events.Event.Column |
+  (Get-Content $Path).TraceData.Events.Event.Column |
     Where-Object { $_.name -eq 'TextData' -and $_.'#text' } |
     Select-Object -ExpandProperty '#text' |
     Write-Output
@@ -57,8 +57,8 @@ function Get-SqlData {
     .EXAMPLE
     Get-SqlData -ConnectionString "Server=Server;Database=database;" -CommandText "Select * From table"
     #>
-  [cmdletbinding()]
-  Param(
+  [CmdletBinding()]
+  param(
     [Parameter(Mandatory = $true)]
     [string]$ConnectionString,
 
@@ -92,8 +92,8 @@ function Invoke-SqlCommand {
     .EXAMPLE
     Invoke-SqlCommand -ConnectionString "Server=Server;Database=database;" -CommandText "Insert Into..."
     #>
-  [cmdletbinding()]
-  Param(
+  [CmdletBinding()]
+  param(
     [Parameter(Mandatory = $true)]
     [string]$ConnectionString,
 
@@ -223,7 +223,7 @@ function Remove-SqlDatabase {
   )
 
   # Connect to master database to avoid connection issues
-  $masterConnectionString = New-SqlConnectionString -Database "master" -Server $Server -ConnectionStringOptions $ConnectionStringOptions
+  $masterConnectionString = New-SqlConnectionString -Database 'master' -Server $Server -ConnectionStringOptions $ConnectionStringOptions
 
   # Set database to single user mode to force disconnect all users
   $singleUserModeCommand = "ALTER DATABASE [$Database] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;"

@@ -3,20 +3,20 @@
 function Edit-PsProfile {
   <#
   .SYNOPSIS
-  Opens $profile directory in VSCode.
+  Opens $profile directory in IDE.
   #>
-  code (Get-Item $profile).Directory
+  & $vtuDefaultIde (Get-Item $profile).Directory
 }
 
 function Edit-PsModules {
   <#
   .SYNOPSIS
-  Opens the first $PSModulePath directory in VSCode.
+  Opens the first $PSModulePath directory in IDE.
   #>
 
   $modulePath = $env:PSModulePath -split ':' | Select-Object -First 1
 
-  code $modulePath
+  & $vtuDefaultIde $modulePath
 }
 
 function Edit-DotnetUserSecrets {
@@ -38,7 +38,7 @@ function Edit-DotnetUserSecrets {
     New-Item -ItemType Directory $folder
   }
 
-  code $folder
+  & $vtuDefaultIde $folder
 }
 
 # Runs a command on each directory in the parent specified
@@ -56,7 +56,7 @@ function Invoke-ChildDirectories {
   )
 
   process {
-    Get-ChildItem -Path $Path |
+    Get-ChildItem -Path $Path -Directory |
       ForEach-Object {
         $currentDirectory = $_
 
@@ -86,7 +86,7 @@ function cdd {
 function coded {
   <#
   .SYNOPSIS
-  Open VSCode in project of dev folder. Will go to first match of a partial project name.
+  Open IDE in project of dev folder. Will go to first match of a partial project name.
   #>
   [CmdletBinding()]
   param (
@@ -96,5 +96,27 @@ function coded {
     $ProjectName
   )
 
-  code (ResolveCddPath -ProjectName $ProjectName)
+  & $vtuDefaultIde (ResolveCddPath -ProjectName $ProjectName)
+}
+
+function cloned {
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]$RepoUrl,
+    [Parameter(Mandatory = $false)]
+    [string]$Destination
+  )
+
+  cdd
+
+  if (-not [string]::IsNullOrWhiteSpace($Destination)) {
+    git clone $RepoUrl $Destination
+    coded $Destination
+  } else {
+    git clone $RepoUrl
+    # Extract the repository name from the URL
+    $repoName = $RepoUrl.TrimEnd('/') -replace '\.git$', '' -replace '^.*/', ''
+    coded $repoName
+  }
 }
