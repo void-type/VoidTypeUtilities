@@ -89,6 +89,25 @@ function Remove-GitOldBranches {
     Where-Object { $_ -notin $OtherBranchesToIgnore } |
     # Delete merged branch
     ForEach-Object { git branch -d $_ }
+
+  # The following branches' upstream has been removed
+  $staleBranches = git branch -vv | Where-Object { $_ -match '\[.*: gone\]' } | ForEach-Object { ($_ -split '\s+')[1] }
+
+  # if there are any stale branch prompt to delete them
+  if ($staleBranches.Count -eq 0) {
+    return
+  }
+
+  Write-Host "The following branches have 'gone' upstream, but we cannot tell if they've been merged:" -ForegroundColor Yellow
+  $staleBranches | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+
+  $confirmation = Read-Host "Do you want to delete these branches? (y/n)"
+  if ($confirmation -eq 'y') {
+    foreach ($branch in $staleBranches) {
+      git branch -D $branch
+    }
+    return
+  }
 }
 
 function Show-GitStatuses {
