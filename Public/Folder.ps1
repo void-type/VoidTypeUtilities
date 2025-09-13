@@ -31,6 +31,8 @@ function Backup-Folder {
     [string]$Destination,
     # File(s) to copy (names/wildcards: default is "*.*").
     [string[]]$File,
+    # Directories to exclude from the copy
+    [string[]]$ExcludeDirectories,
     # Reverses the order of source and destination
     [switch]$Restore,
     # Disables the /MIR flag and prevent deletion of extra files.
@@ -47,12 +49,19 @@ function Backup-Folder {
     $roboCopyArgs += $Source
   }
 
+  if ($NoDelete -eq $false) {
+    $roboCopyArgs += '/MIR'
+  }
+
   foreach ($f in $File) {
     $roboCopyArgs += $f
   }
 
-  if ($NoDelete -eq $false) {
-    $roboCopyArgs += '/MIR'
+  if ($ExcludeDirectories) {
+    $roboCopyArgs += '/XD'
+    foreach ($dir in $ExcludeDirectories) {
+      $roboCopyArgs += $dir
+    }
   }
 
   $roboCopyArgs += @(
