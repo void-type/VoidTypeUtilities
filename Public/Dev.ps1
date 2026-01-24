@@ -14,7 +14,7 @@ function Edit-PsModules {
   Opens the first $PSModulePath directory in IDE.
   #>
 
-  $modulePath = $env:PSModulePath -split ':' | Select-Object -First 1
+  $modulePath = $env:PSModulePath -split ';' | Select-Object -First 1
 
   & $vtuDefaultIde $modulePath
 }
