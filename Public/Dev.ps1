@@ -19,6 +19,10 @@ function Edit-PsModules {
   & $vtuDefaultIde $modulePath
 }
 
+function Edit-PsHistory {
+  & $global:vtuDefaultIde (Get-PSReadLineOption).HistorySavePath
+}
+
 function Edit-DotnetUserSecrets {
   <#
   .SYNOPSIS
@@ -83,6 +87,10 @@ function cdd {
   Set-Location -Path (ResolveCddPath -ProjectName $ProjectName)
 }
 
+function explored {
+  explorer $global:vtuDefaultDevDir
+}
+
 function coded {
   <#
   .SYNOPSIS
@@ -120,3 +128,47 @@ function cloned {
     coded $repoName
   }
 }
+
+function codei {
+  <#
+  .SYNOPSIS
+  Open IDE with specified arguments.
+  #>
+  [CmdletBinding()]
+  param (
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]] $Args
+  )
+
+  & $vtuDefaultIde @Args
+}
+
+# Only register touch function if it doesn't already exist (e.g., native Linux/Unix command)
+if (-not (Get-Command -Name touch -ErrorAction SilentlyContinue)) {
+  function touch {
+    <#
+    .SYNOPSIS
+    Update the access and modification times of a file to the current time.
+    If the file does not exist, it is created.
+    #>
+    [CmdletBinding()]
+    param (
+      [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+      [string[]] $Path
+    )
+
+    process {
+      foreach ($file in $Path) {
+        if (Test-Path -Path $file) {
+          # Update the LastWriteTime and LastAccessTime to the current time
+          (Get-Item $file).LastWriteTime = Get-Date
+          (Get-Item $file).LastAccessTime = Get-Date
+        } else {
+          # Create an empty file
+          New-Item -ItemType File -Path $file | Out-Null
+        }
+      }
+    }
+  }
+}
+
