@@ -172,3 +172,7 @@ function Show-GitStatuses {
 
   Pop-Location
 }
+
+function Edit-GitConfig {
+  & $global:vtuDefaultIde "$env:USERPROFILE\.gitconfig"
+}
