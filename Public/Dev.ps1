@@ -1,4 +1,5 @@
-. "$PSScriptRoot/../Private/Dev.private.ps1"
+$global:vtuDefaultDevDir = 'C:\dev\'
+$global:vtuDefaultIde = 'code'
 
 function Edit-PsProfile {
   <#
@@ -71,6 +72,53 @@ function Invoke-ChildDirectories {
   }
 }
 
+function Get-DevProjects {
+  param(
+    [string]$ProjectName
+  )
+
+  [System.IO.DirectoryInfo[]]$results = Get-ChildItem -Path ($vtuDefaultDevDir + $ProjectName + '*') -Directory
+
+  # If results weren't found with completion, add wildcard to the front.
+  if ($results.Count -lt 1) {
+    [System.IO.DirectoryInfo[]]$results = Get-ChildItem -Path ($vtuDefaultDevDir + '*' + $ProjectName + '*') -Directory
+  }
+
+  return $results
+}
+
+# Used for autocomplete
+function Get-DevProjectNames {
+  param(
+    [string]$commandName,
+    [string]$parameterName,
+    [string]$wordToComplete
+  )
+
+  return Get-DevProjects -ProjectName $wordToComplete |
+    Select-Object -ExpandProperty Name
+}
+
+# Shared logic for dev commands to resolve a project, or the parent directory if project name is empty.
+function Resolve-DevPath {
+  param(
+    [string]$ProjectName
+  )
+
+  if ([string]::IsNullOrWhitespace($ProjectName)) {
+    return $vtuDefaultDevDir
+  }
+
+  # In case the user didn't complete, we'll complete it for them.
+  $ProjectDir = Get-DevProjects -ProjectName $ProjectName | Select-Object -First 1
+
+  if ($null -eq $ProjectDir) {
+    throw "No project found with name '$ProjectName' in $vtuDefaultDevDir"
+  }
+
+  return $ProjectDir.FullName
+}
+
 function cdd {
   <#
   .SYNOPSIS
@@ -79,12 +127,12 @@ function cdd {
   [CmdletBinding()]
   param(
     [Parameter()]
-    [ArgumentCompleter({ GetCddProjectNames @args })]
+    [ArgumentCompleter({ Get-DevProjectNames @args })]
     [string]
     $ProjectName
   )
 
-  Set-Location -Path (ResolveCddPath -ProjectName $ProjectName)
+  Set-Location -Path (Resolve-DevPath -ProjectName $ProjectName)
 }
 
 function explored {
@@ -99,12 +147,12 @@ function coded {
   [CmdletBinding()]
   param (
     [Parameter()]
-    [ArgumentCompleter({ GetCddProjectNames @args })]
+    [ArgumentCompleter({ Get-DevProjectNames @args })]
     [string]
     $ProjectName
   )
 
-  & $vtuDefaultIde (ResolveCddPath -ProjectName $ProjectName)
+  & $vtuDefaultIde (Resolve-DevPath -ProjectName $ProjectName)
 }
 
 function cloned {
