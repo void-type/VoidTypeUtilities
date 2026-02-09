@@ -218,6 +218,10 @@ function Remove-SqlDatabase {
     $Server = $vtuDefaultSqlServer,
 
     [Parameter()]
+    [switch]
+    $IncludeBackupHistory,
+
+    [Parameter()]
     [string]
     $ConnectionStringOptions = $vtuDefaultSqlConnectionStringOptions
   )
@@ -232,6 +236,12 @@ function Remove-SqlDatabase {
   # Drop the database with all physical files
   $dropDatabaseCommand = "DROP DATABASE [$Database];"
   Invoke-SqlCommand -ConnectionString $masterConnectionString -CommandText $dropDatabaseCommand
+
+  if ($IncludeBackupHistory) {
+    # Remove backup history for the database
+    $removeBackupHistoryCommand = "DELETE FROM msdb.dbo.backupset WHERE database_name = '$Database';"
+    Invoke-SqlCommand -ConnectionString $masterConnectionString -CommandText $removeBackupHistoryCommand
+  }
 
   Write-Verbose "Database [$Database] has been dropped successfully."
 }
