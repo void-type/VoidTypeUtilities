@@ -29,7 +29,27 @@ function Get-WebCertificate {
     foreach ($siteUrl in $Url) {
 
       try {
-        $tcpClient = New-Object -TypeName System.Net.Sockets.TCPClient($siteUrl, $Port)
+        # Ensure the string has a scheme so [System.Uri] can parse it correctly
+        if ($siteUrl -notmatch '^https?://') {
+          $targetUrl = "https://$siteUrl"
+        } else {
+          $targetUrl = $siteUrl
+        }
+
+        $uri = [System.Uri]$targetUrl
+        $cleanHost = $uri.Host
+
+        # Determine which port to use:
+        # If the URI has a specific port assigned (-1 means no port was in the string), use it.
+        # Otherwise, fall back to the function's $Port parameter.
+        if ($uri.Port -ne -1 -and $siteUrl -match ':\d+') {
+          $activePort = $uri.Port
+        } else {
+          $activePort = $Port
+        }
+
+        # Connect using the clean host and determined port
+        $tcpClient = New-Object -TypeName System.Net.Sockets.TCPClient($cleanHost, $activePort)
 
         try {
 
@@ -37,7 +57,7 @@ function Get-WebCertificate {
 
           $sslStream = New-Object -TypeName System.Net.Security.SSLStream -ArgumentList @($tcpClient.GetStream(), $true, $callback)
 
-          $sslStream.AuthenticateAsClient($siteUrl)
+          $sslStream.AuthenticateAsClient($cleanHost)
           $certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($sslStream.RemoteCertificate)
 
           [DateTime]$expirationDate = [System.DateTime]::Parse($certificate.GetExpirationDateString())
@@ -45,6 +65,7 @@ function Get-WebCertificate {
 
           $properties = @{
             Url            = $siteUrl
+            PortUsed       = $activePort
             Name           = $certificate.GetName()
             Issuer         = $certificate.GetIssuerName()
             ExpirationDate = $expirationDate.ToString('s')
