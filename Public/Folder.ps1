@@ -156,3 +156,29 @@ function Compare-Folders {
   Write-Host 'Extra in B'
   CompareFileInfos -A $filesB -B $filesA | Format-Table
 }
+
+# Runs a command on each directory in the parent specified
+function Invoke-ChildDirectories {
+  <#
+  .SYNOPSIS
+  Runs a command on each directory in the parent specified
+  #>
+  [CmdletBinding()]
+  param (
+    [Parameter()]
+    [string] $Path = './',
+    [Parameter(Mandatory = $true, Position = 1)]
+    [scriptblock] $DirectoryScriptBlock
+  )
+
+  process {
+    Get-ChildItem -Path $Path -Directory |
+      ForEach-Object {
+        $currentDirectory = $_
+
+        Push-Location $currentDirectory
+        Invoke-Command -ScriptBlock $DirectoryScriptBlock | Write-Host
+        Pop-Location
+      }
+  }
+}

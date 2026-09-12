@@ -1,77 +1,6 @@
 $global:vtuDefaultDevDir = 'C:\dev\'
 $global:vtuDefaultIde = 'code'
 
-function Edit-PsProfile {
-  <#
-  .SYNOPSIS
-  Opens $profile directory in IDE.
-  #>
-  & $vtuDefaultIde (Get-Item $profile).Directory
-}
-
-function Edit-PsModules {
-  <#
-  .SYNOPSIS
-  Opens the first $PSModulePath directory in IDE.
-  #>
-
-  $modulePath = $env:PSModulePath -split ';' | Select-Object -First 1
-
-  & $vtuDefaultIde $modulePath
-}
-
-function Edit-PsHistory {
-  & $global:vtuDefaultIde (Get-PSReadLineOption).HistorySavePath
-}
-
-function Edit-DotnetUserSecrets {
-  <#
-  .SYNOPSIS
-  Opens .NET UserSecrets directory.
-  #>
-
-  if ($IsLinux) {
-    $folder = "$HOME/.microsoft/usersecrets/"
-  } elseif ($IsMacOS) {
-    $folder = "$HOME/Library/Application Support/dotnet/usersecrets/"
-  } else {
-    # Windows
-    $folder = "$env:APPDATA\microsoft\UserSecrets\"
-  }
-
-  if (-not(Test-Path -Path $folder)) {
-    New-Item -ItemType Directory $folder
-  }
-
-  & $vtuDefaultIde $folder
-}
-
-# Runs a command on each directory in the parent specified
-function Invoke-ChildDirectories {
-  <#
-  .SYNOPSIS
-  Runs a command on each directory in the parent specified
-  #>
-  [CmdletBinding()]
-  param (
-    [Parameter()]
-    [string] $Path = './',
-    [Parameter(Mandatory = $true, Position = 1)]
-    [scriptblock] $DirectoryScriptBlock
-  )
-
-  process {
-    Get-ChildItem -Path $Path -Directory |
-      ForEach-Object {
-        $currentDirectory = $_
-
-        Push-Location $currentDirectory
-        Invoke-Command -ScriptBlock $DirectoryScriptBlock | Write-Host
-        Pop-Location
-      }
-  }
-}
-
 function Get-DevProjects {
   param(
     [string]$ProjectName
@@ -220,3 +149,24 @@ if (-not (Get-Command -Name touch -ErrorAction SilentlyContinue)) {
   }
 }
 
+function Edit-DotnetUserSecrets {
+  <#
+  .SYNOPSIS
+  Opens .NET UserSecrets directory.
+  #>
+
+  if ($IsLinux) {
+    $folder = "$HOME/.microsoft/usersecrets/"
+  } elseif ($IsMacOS) {
+    $folder = "$HOME/Library/Application Support/dotnet/usersecrets/"
+  } else {
+    # Windows
+    $folder = "$env:APPDATA\microsoft\UserSecrets\"
+  }
+
+  if (-not(Test-Path -Path $folder)) {
+    New-Item -ItemType Directory $folder
+  }
+
+  & $vtuDefaultIde $folder
+}

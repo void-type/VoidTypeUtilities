@@ -1,3 +1,31 @@
+# Tab completion for branch names after git subcommands that take one (switch/checkout/branch/merge/rebase),
+# including the short git aliases configured via: git config --global alias.sw switch / alias.ck checkout / alias.br branch
+$global:gitBranchArgSubcommands = @{
+  switch   = 'switch'
+  checkout = 'checkout'
+  branch   = 'branch'
+  merge    = 'merge'
+  rebase   = 'rebase'
+}
+
+Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
+  param($wordToComplete, $commandAst, $cursorPosition)
+
+  $tokens = $commandAst.CommandElements | ForEach-Object { $_.Extent.Text }
+
+  if ($tokens.Count -gt 1 -and $global:gitBranchArgSubcommands.ContainsKey($tokens[1])) {
+    git branch --format '%(refname:short)' 2>$null |
+      Where-Object { $_ -like "$wordToComplete*" } |
+      Sort-Object |
+      ForEach-Object {
+        [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+      }
+  } else {
+    # Fall back to normal file completion for everything else (git add, git log <path>, etc.)
+    [System.Management.Automation.CompletionCompleters]::CompleteFilename($wordToComplete)
+  }
+}
+
 function Search-GitRepo {
   <#
       .SYNOPSIS
